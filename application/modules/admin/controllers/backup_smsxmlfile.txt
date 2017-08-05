@@ -1,0 +1,40 @@
+public function sendsmsAPI3($count="",$sender="",$msg="",$un="",$pass="")
+            {
+                $flash = 0; // 0 for normal sms and 1 for flash sms
+                $unicode = 2; //do not change this value --> 0 for text and 1 for binary value
+                $xmlstring = '<?xml version="1.0" encoding="ISO-8859-1"?><!DOCTYPE MESSAGE SYSTEM "http://127.0.0.1/psms/dtd/messagev12.dtd" ><MESSAGE VER="1.2"><USER USERNAME="'.$un.'" PASSWORD="'.$pass.'"/>';
+                                    
+                                $sendmsg = str_replace("&","&amp;",$msg);
+                                $sendmsg = str_replace("\n"," &#x0A;",$sendmsg);
+                                if($unicode == 1)
+                                    {
+                                        $code = 2;
+                                    }else{
+                                        $code = 1;
+                                    }
+                                $smsid = time();
+                                
+                                $xmlstring .= '<SMS  UDH="0" CODING="'.$code.'" TEXT="'.$sendmsg.'" PROPERTY="'.$flash.'" ID="'.$smsid.'">';
+                                $xmlstring .='<ADDRESS FROM="'.$sender.'" TO="'.$count.'" SEQ="1" TAG="'.date('Y-m-d').'" />';
+                                 $xmlstring .='</SMS>';
+
+                                 $xmlstring .= '<SMS  UDH="0" CODING="'.$code.'" TEXT="'.$sendmsg.'" PROPERTY="'.$flash.'" ID="'.$smsid.'">';
+                                $xmlstring .='<ADDRESS FROM="'.$sender.'" TO="'.$count.'" SEQ="1" TAG="'.date('Y-m-d').'" />';
+                                 $xmlstring .='</SMS>';
+                                 
+                                $xmlstring .= '</MESSAGE>';
+                            $url = 'http://api.myvaluefirst.com/psms/servlet/psms.Eservice2';
+                            $data = 'data='.urlencode($xmlstring).'&'.'action=send';
+                            $objURL = curl_init($url);
+                            curl_setopt($objURL, CURLOPT_RETURNTRANSFER, 1); 
+                            curl_setopt($objURL,CURLOPT_POST,1);
+                            curl_setopt($objURL, CURLOPT_POSTFIELDS,$data);
+                            $retval = trim(curl_exec($objURL));
+                            curl_close($objURL);    
+                            $xml = new SimpleXMLElement($retval); 
+                            
+                            echo "<pre>";
+                            print_r($xml);
+            }
+
+            $this->sendsmsAPI3('8866422197','ada','Content data','myvbookxml','amit@123');

@@ -1,0 +1,5 @@
+<?php
+$token = array();
+$token['id'] = $id;
+echo JWT::encode($token, '1234567');
+?>

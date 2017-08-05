@@ -1,0 +1,4 @@
+Festival Name,Festival Date (yyyy-mm-dd),State id(comma separated),"Category(1-Mandatory,0-not mandatory)"
+Diwali800,,,
+holi700,4-Jul-17,"1,2",
+holi600,1-Nov-16,1,0

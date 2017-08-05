@@ -1,0 +1,152 @@
+.portlet.light {
+    padding: 12px 20px 15px;
+    background-color: #ffffff;
+    /* background: red; */
+    border: solid 1px #dadada !important;
+}
+
+.label.label-sm {
+    font-size: 13px;
+    padding: 2px 5px;
+    margin-left: 5px !important;
+}
+
+.page-header.navbar .top-menu .navbar-nav>li.dropdown .dropdown-toggle:hover, .page-header.navbar .top-menu .navbar-nav>li.dropdown.open .dropdown-toggle {
+    background-color: #3f4f62;
+    background: none !important;
+}
+.mt14{ margin-top:14px;}
+
+.page-header.navbar .top-menu .navbar-nav>li.dropdown .dropdown-toggle:hover,
+ .page-header.navbar .top-menu .navbar-nav>li.dropdown.open .dropdown-toggle, 
+ .page-header.navbar .top-menu .navbar-nav>li a:hover
+
+{color:orange !important;transition: all 0.5s;}
+
+.actions a,.actions a i {
+    color: #337ab7 !important;
+}
+
+b.gold{color:yellow !important;}
+
+span.mandatory{color:red;}
+
+
+.table-scrollable button {
+    background: none !important;
+    border: none !important;
+}
+
+.table-scrollable i{color: blue!important;}
+
+.table-scrollable i {
+        color: #e46051!important;
+       font-size: 17px;
+}
+
+.table thead tr th {
+    font-size: 12px !important;
+    font-weight: 600;
+    font-weight: bold;
+}
+
+.table td, .table th {
+    font-size: 12px !important;
+}
+
+.input-group[class*=col-]{float: left;}
+
+.white{color: #fff !important; padding-top: 30px;}
+
+
+a.branch{}
+
+a.branch .col-md-4:hover {
+    background: #1c2531 !important;
+    transition: all 0.5s !important;
+}
+
+tr.gradeX.odd img {
+    width: 25px;
+}
+
+tr.gradeX.even img {
+    width: 25px;
+}
+.modal-dialog{    width: 600px;
+    margin: 30px auto;
+    margin-top: 10% !important;}
+
+
+.modal h2 {
+    font-size: 24px !important;
+}
+
+.page-content h2{font-size: 18px !important;}
+
+.page-content-white .page-title {
+    margin: 10px 0 !important;
+    font-size: 24px;
+ 
+}
+
+.page-container-bg-solid .page-bar, .page-content-white .page-bar {
+    background-color: #fff;
+    position: relative;
+    padding: 4px 20px !important;
+    margin: -17px -20px 0 !important;
+    font-size: 18px;
+}
+
+
+.page-content-white .page-content .page-bar {
+    border-bottom: 1px solid #e7ecf1;
+    margin-bottom: 15px !important;
+}
+
+div.current_page{border:none !important; margin-top: 3px !important;}
+div.current_page ul{    padding: 0px !important;
+   margin-top: -9px !important;
+border:none !important;}
+
+
+.blink_me {
+    -webkit-animation-name: blinker;
+    -webkit-animation-duration: 3s;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-iteration-count: infinite;
+    
+    -moz-animation-name: blinker;
+    -moz-animation-duration: 3s;
+    -moz-animation-timing-function: linear;
+    -moz-animation-iteration-count: infinite;
+    
+    animation-name: blinker;
+    animation-duration: 3s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@-moz-keyframes blinker {  
+    0% { opacity: 1.0; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1.0; }
+}
+
+@-webkit-keyframes blinker {  
+    0% { opacity: 1.0; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1.0; }
+}
+
+@keyframes blinker {  
+    0% { opacity: 1.0; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1.0; }
+}
+
+
+.page-container-bg-solid .page-bar
+.page-breadcrumb, .page-content-white .page-bar .page-breadcrumb {
+    padding: 0px 0 !important;
+}

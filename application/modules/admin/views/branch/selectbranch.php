@@ -1,0 +1,374 @@
+<!doctype html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<title>Branch Selection</title>
+
+<style>
+
+html,
+
+body { height: 100%; }
+
+
+
+body {
+
+  margin: 0;
+
+ //background: linear-gradient(#eeeeee, #cccccc);
+
+  background: linear-gradient(#eeeeee, #ffffff);
+
+  overflow: hidden;
+
+}
+
+
+
+.selector {
+
+  position: absolute;
+
+  left: 50%;
+
+  top: 50%;
+
+  width: 140px;
+
+  height: 140px;
+
+  margin-top: -70px;
+
+  margin-left: -70px;
+
+}
+
+
+
+.selector,
+
+.selector button {
+
+  font-family: 'Oswald', sans-serif;
+
+  font-weight: 300;
+
+}
+
+
+
+.selector button {
+
+  position: relative;
+
+  width: 120%;
+
+  height: 120%;
+
+  padding: 10px;
+
+  background: #428bca;
+
+  border-radius: 50%;
+
+  border: 0;
+
+  color: white;
+
+  font-size: 20px;
+
+  cursor: pointer;
+
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.1);
+
+  transition: all .1s;
+
+}
+
+
+
+.selector button:hover { background: #3071a9; }
+
+
+
+.selector button:focus { outline: none; }
+
+
+
+.selector ul {
+
+/*
+
+  position: absolute;
+
+  list-style: none;
+
+  padding: 0;
+
+  margin: 0;
+
+  top: -20px;
+
+  right: -20px;
+
+  bottom: -20px;
+
+  left: -20px;
+
+*/
+
+    position: absolute;
+
+    list-style: none;
+
+    padding: 0;
+
+    margin: -40px;
+
+    top: 10px;
+
+    right: -20px;
+
+    bottom: -20px;
+
+    left: 0;
+
+}
+
+
+
+.selector li {
+
+  position: absolute;
+
+  width: 0;
+
+  height: 100%;
+
+  margin: 0 50%;
+
+  -webkit-transform: rotate(-360deg);
+
+  transition: all 0.8s ease-in-out;
+
+}
+
+
+
+.selector li input { display: none; }
+
+
+
+.selector li input + label {
+
+  position: absolute;
+
+  left: 50%;
+
+  bottom: 100%;
+
+  width: 0;
+
+  height: 0;
+
+  line-height: 1px;
+
+  margin-left: 0;
+
+  background: #fff;
+
+  border-radius: 50%;
+
+  text-align: center;
+
+  font-size: 1px;
+
+  overflow: hidden;
+
+  cursor: pointer;
+
+  box-shadow: none;
+
+  transition: all 0.8s ease-in-out, color 0.1s, background 0.1s;
+
+}
+
+
+
+.selector li input + label:hover { background: #f0f0f0; }
+
+
+
+.selector li input:checked + label {
+
+  background: #5cb85c;
+
+  color: white;
+
+}
+
+
+
+.selector li input:checked + label:hover { background: #449d44; }
+
+
+
+.selector.open li input + label {
+
+  width: 100px;
+
+  height: 100px;
+
+  line-height: 100px;
+
+  margin-left: -40px;
+
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.1);
+
+  font-size: 14px;
+
+}
+
+</style>
+
+</head>
+
+
+
+<body>
+
+<h1 align="center">Select Branch</h1>
+
+<div class='selector'>
+
+  <ul>
+  
+  <?php 
+   for($i=0;$i<count($resultBranch);$i++)
+   {
+     $j=$i+1;
+   	?>
+    <li>
+
+      <input id='c<?php echo $j;?>' type='checkbox'>
+
+      <label for='c<?php echo $j;?>'><a href="<?php echo base_url();?>admin/branch/assignBranch/<?php echo $resultBranch[$i]->brn_id_pk;?>">
+      <img src="<?php echo base_url()?>themes/assets/br.png" width='98.5' title='<?php echo $resultBranch[$i]->brn_name;?>'/>
+      
+      
+      </a></label>
+
+    </li>
+<?php 
+   }
+?>
+   
+  </ul>
+
+  <button><a href="#"><img src="<?php echo base_url()?>themes/assets/br.png" width='98.5'/></a></button>
+
+</div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><script>var nbOptions = 8;
+
+var angleStart = -360;
+
+
+
+// jquery rotate animation
+
+function rotate(li,d) {
+
+    $({d:angleStart}).animate({d:d}, {
+
+        step: function(now) {
+
+            $(li)
+
+               .css({ transform: 'rotate('+now+'deg)' })
+
+               .find('label')
+
+                  .css({ transform: 'rotate('+(-now)+'deg)' });
+
+        }, duration: 0
+
+    });
+
+}
+
+
+
+// show / hide the options
+
+function toggleOptions(s) {
+
+    $(s).toggleClass('open');
+
+    var li = $(s).find('li');
+
+    var deg = $(s).hasClass('half') ? 180/(li.length-1) : 360/li.length;
+
+    for(var i=0; i<li.length; i++) {
+
+        var d = $(s).hasClass('half') ? (i*deg)-90 : i*deg;
+
+        $(s).hasClass('open') ? rotate(li[i],d) : rotate(li[i],angleStart);
+
+    }
+
+}
+
+
+
+$('.selector button').click(function(e) {
+
+    toggleOptions($(this).parent());
+
+});
+
+
+
+setTimeout(function() { toggleOptions('.selector'); }, 100);//@ sourceURL=pen.js
+
+</script>
+
+<script type="text/javascript">
+
+
+
+  var _gaq = _gaq || [];
+
+  _gaq.push(['_setAccount', 'UA-36251023-1']);
+
+  _gaq.push(['_setDomainName', 'jqueryscript.net']);
+
+  _gaq.push(['_trackPageview']);
+
+
+
+  (function() {
+
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+
+  })();
+
+
+
+</script>
+
+
+
+</body>
+
+</html>
+

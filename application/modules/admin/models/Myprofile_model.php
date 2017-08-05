@@ -1,0 +1,674 @@
+	<?php
+
+	class Myprofile_model extends CI_Model
+	{
+
+		public function __construct()
+		{
+
+			parent::__construct();
+		
+		}
+		// ---FUnction used to get details of system user--//
+		public function getProfileDetailes($id)
+		{
+
+			$result=$this->db->query("select * from tblmvbsystemusers where sysu_id_pk='" . $id . "'");
+			return $result->result();
+		
+		}
+		// function to get package Details
+		public function getPackageDetailes($id)
+		{
+
+			$res=$this->db->query("select sysu_clientId_fk from tblmvbsystemusers where sysu_id_pk='" . $id . "'");
+			$result=$res->result();
+			$clientid=$result[0]->sysu_clientId_fk;
+			$res2=$this->db->query("select *  from tblmvbpackages,tblmvbclients where clnt_id_pk='" . $clientid . "' and tblmvbpackages.pkg_id_pk=tblmvbclients.clnt_packageId_fk");
+			return $res2->result();
+		
+		}
+
+		public function getOtp($id)
+		{
+
+			$res=$this->db->query("select sysu_password from tblmvbsystemusers where sysu_id_pk='" . $id . "'");
+			$result=$res->result();
+			$dbotp=$this->encryption->decrypt($result[0]->sysu_password);
+			return $dbotp;
+		
+		}
+		// this function to change Password of System user
+		public function updatePassword($id,$password)
+		{
+			$newpassword=$this->encryption->encrypt($password);
+			$array=array('sysu_password'=>$newpassword);
+			$this->db->where('sysu_id_pk',$id);
+			$this->db->update('tblmvbsystemusers',$array);
+			
+			return true;
+		}
+
+		public function getSystemuser()
+		{
+
+			$adminId=$this->session->userdata('admin_admin_id');
+			$clientId=$this->session->userdata('client_id');
+			$parentClient=$this->session->userdata('parent_client');
+			$branchId=$this->session->userdata('branch_id');
+			if ($parentClient == 1)
+			{
+				$sql="select tblmvbbranches.brn_name,tblmvbcity.cty_name,tblmvbusertypes.utyp_userType, tblmvbsystemusers.sysu_id_pk,tblmvbsystemusers.sysu_branchId_fk,
+					  tblmvbsystemusers.sysu_userTypeId_fk,tblmvbsystemusers.sysu_name,tblmvbsystemusers.sysu_mobile, tblmvbsystemusers.sysu_email,tblmvbsystemusers.sysu_cityId,
+					  tblmvbsystemusers.sysu_status,tblmvbcity.cty_name,tblmvbbranches.brn_name from tblmvbsystemusers LEFT JOIN tblmvbcity on 
+					  tblmvbcity.cty_id_pk=tblmvbsystemusers.sysu_cityId LEFT JOIN tblmvbbranches on tblmvbbranches.brn_id_pk=tblmvbsystemusers.sysu_branchId_fk
+					  LEFT JOIN tblmvbusertypes ON tblmvbusertypes.utyp_id_pk=tblmvbsystemusers.sysu_userTypeId_fk Where tblmvbsystemusers.sysu_clientId_fk='" . $clientId . "' and 
+	                  tblmvbsystemusers.sysu_branchId_fk !='' ";
+			} else
+			{
+				$sql="select tblmvbbranches.brn_name,tblmvbcity.cty_name,tblmvbusertypes.utyp_userType, tblmvbsystemusers.sysu_id_pk,tblmvbsystemusers.sysu_branchId_fk,
+					  tblmvbsystemusers.sysu_userTypeId_fk,tblmvbsystemusers.sysu_name,tblmvbsystemusers.sysu_mobile, tblmvbsystemusers.sysu_email,tblmvbsystemusers.sysu_cityId,
+					  tblmvbsystemusers.sysu_status,tblmvbcity.cty_name,tblmvbbranches.brn_name from tblmvbsystemusers LEFT JOIN tblmvbcity on 
+					  tblmvbcity.cty_id_pk=tblmvbsystemusers.sysu_cityId LEFT JOIN tblmvbbranches on tblmvbbranches.brn_id_pk=tblmvbsystemusers.sysu_branchId_fk
+					  LEFT JOIN tblmvbusertypes ON tblmvbusertypes.utyp_id_pk=tblmvbsystemusers.sysu_userTypeId_fk Where tblmvbsystemusers.sysu_branchId_fk='" . $branchId . "'";
+			}
+			
+			$query=$this->db->query($sql);
+			return $query->result();
+		
+		}
+		// function to update data in systemusers
+		public function savedata()
+		{
+
+			$id=$this->input->post('sys_userid');
+			$name=$this->input->post('name');
+			$mob=$this->input->post('mobile');
+			$mobile=$this->encryption->encrypt($mob);
+			$em=$this->input->post('email');
+			$email=$this->encryption->encrypt($em);
+			$address=$this->input->post('address');
+			$countryid=$this->input->post('country');
+			$stateid=$this->input->post('state');
+			$cityid=$this->input->post('city');
+			$filename="";
+			
+			if (isset($_FILES["profilepic"]["name"]))
+			{
+				
+				$filename=time() . $_FILES["profilepic"]["name"];
+				
+				move_uploaded_file($_FILES["profilepic"]["tmp_name"],"./uploads/systemusers_images/" . $filename);
+			}
+			if ($filename == "")
+			{
+				$filename=$this->input->post('pfilename');
+			}
+			
+			$arrupdate=array(
+							
+							'sysu_name'=>$name,
+							'sysu_mobile'=>$mobile,
+							'sysu_email'=>$email,
+							'sysu_address'=>$address,
+							'sysu_countryId_fk'=>$countryid,
+							'sysu_stateId_fk'=>$stateid,
+							'sysu_cityId'=>$cityid,
+							'sysu_profile'=>$filename);
+			
+			$this->db->where('sysu_id_pk',$id);
+			$k=$this->db->update('tblmvbsystemusers',$arrupdate);
+			return $k;
+		
+		}
+		
+		// --Function Used to get all user type-//
+		public function getUsertypelist()
+		{
+
+			$query=$this->db->query("SELECT `utyp_id_pk`, `utyp_userType`, `utyp_status` FROM `tblmvbusertypes` ");
+			return $query->result();
+		
+		}
+		
+		// --Function used to get Country--//
+		Public function getCountrylist()
+		{
+
+			$result=$this->db->query("select cntr_id_pk,cntr_name,cntr_status from tblmvbcountry ");
+			return $result->result();
+		
+		}
+		
+		// --Function used to get State--//
+		Public function getStatelist($id)
+		{
+
+			$result=$this->db->query("select stat_id_pk,stat_name,stat_status from tblmvbstate  WHERE stat_countryId_fk='" . $id . "'");
+			return $result->result();
+		
+		}
+		
+		// --Function used to get State--//
+		Public function getCitylist($id)
+		{
+
+			$result=$this->db->query("select cty_id_pk,cty_name,cty_status from tblmvbcity  WHERE cty_stateId_fk='" . $id . "'");
+			return $result->result();
+		
+		}
+		
+		// ----function used to get branch details----//
+		public function getBranchDetails()
+		{
+
+			$clientId=$this->session->userdata('client_id');
+			$result=$this->db->query("	SELECT brn_id_pk, brn_clientId_fk, brn_name, brn_status FROM tblmvbbranches WHERE brn_clientId_fk='" . $clientId . "'");
+			
+			return $result->result();
+		
+		}
+		
+		// --function used to get specific user details--//
+		public function getSpecificuser($id)
+		{
+
+			$query=$this->db->query("SELECT `sysu_id_pk`, `sysu_branchId_fk`, `sysu_userTypeId_fk`, `sysu_clientId_fk`, `sysu_parentClient`, `sysu_name`, `sysu_mobile`,
+					                `sysu_email`, `sysu_password`, `sysu_countryId_fk`, `sysu_stateId_fk`, `sysu_cityId`, `sysu_address`,  `sysu_status` FROM 
+					                `tblmvbsystemusers` WHERE sysu_id_pk='" . $id . "'");
+			return $query->result();
+		
+		}
+		
+		// --Function Used to get all Add New user-//
+		public function addUser()
+		{
+
+			$created_date=date('Y-m-d H:i:s');
+			$user_type_id=$this->input->post('selUsertype');
+			$userBranch=$this->input->post('selBranch');
+			$username=$this->input->post('txtUsername');
+			$email=$this->input->post('txtEmail');
+			$email=$this->encryption->encrypt($email);
+			$mobile_no=$this->input->post('txtMobile');
+			$mobile_no=$this->encryption->encrypt($mobile_no);
+			$country=$this->input->post('selCountry');
+			$city=$this->input->post('selCity');
+			$state=$this->input->post('selState');
+			$address=$this->input->post('txtAddress');
+			$check_password_type=$this->input->post('optradio');
+			$created_by=$this->session->userdata('admin_admin_id');
+			$clientId=$this->session->userdata('client_id');
+			if ($check_password_type == '0')
+			{
+				$final_password=$this->input->post('txtPassword');
+			} else
+			{
+				$final_password=$this->input->post('txtAutopassword');
+			}
+			
+			$final_password=$this->encryption->encrypt($final_password);
+			
+			$data=array(
+						'sysu_branchId_fk'=>$userBranch,
+						'sysu_userTypeId_fk'=>$user_type_id,
+						'sysu_clientId_fk'=>$clientId,
+						'sysu_parentClient'=>0,
+						'sysu_name'=>$username,
+						'sysu_mobile'=>$mobile_no,
+						'sysu_email'=>$email,
+						'sysu_password'=>$final_password,
+						'sysu_countryId_fk'=>$country,
+						'sysu_stateId_fk'=>$state,
+						'sysu_cityId'=>$city,
+						'sysu_address'=>$address,
+						'sysu_createdDate'=>$created_date,
+						'sysu_createdBy'=>$created_by,
+						'sysu_modifiedDate'=>$created_date,
+						'sysu_modifiedby'=>$created_by,
+						'sysu_status'=>1);
+			
+			$this->db->insert('tblmvbsystemusers',$data);
+			$insert_id=$this->db->insert_id();
+			return $insert_id;
+		
+		}
+
+		public function editUser()
+		{
+
+			$created_date=date('Y-m-d H:i:s');
+			$user_type_id=$this->input->post('selUsertype');
+			$userBranch=$this->input->post('selBranch');
+			$username=$this->input->post('txtUsername');
+			$created_by=$this->session->userdata('admin_admin_id');
+			$id=$this->input->post('txtUserid');
+			$email=$this->input->post('txtEmail');
+			$email=$this->encryption->encrypt($email);
+			$mobile_no=$this->input->post('txtMobile');
+			$mobile_no=$this->encryption->encrypt($mobile_no);
+			$country=$this->input->post('selCountry');
+			$city=$this->input->post('selCity');
+			$state=$this->input->post('selState');
+			$address=$this->input->post('txtAddress');
+			$clientId=$this->session->userdata('client_id');
+			
+			$data=array(
+						'sysu_branchId_fk'=>$userBranch,
+						'sysu_userTypeId_fk'=>$user_type_id,
+						'sysu_name'=>$username,
+						'sysu_mobile'=>$mobile_no,
+						'sysu_email'=>$email,
+						'sysu_countryId_fk'=>$country,
+						'sysu_stateId_fk'=>$state,
+						'sysu_cityId'=>$city,
+						'sysu_address'=>$address,
+						'sysu_modifiedDate'=>$created_date,
+						'sysu_modifiedby'=>$created_by);
+			
+			$this->db->where('sysu_id_pk',$id);
+			$this->db->update('tblmvbsystemusers',$data);
+			
+			return $id;
+		
+		}
+		
+		// --- Function used to change status of User---//
+		public function changeuserStatus($status,$userId)
+		{
+
+			for($i=0;$i < count($userId);$i ++)
+			{
+				$data=array(
+							'sysu_status'=>$status);
+				$this->db->where('sysu_id_pk',$userId[$i]);
+				
+				$this->db->update('tblmvbsystemusers',$data);
+			}
+			
+			return true;
+		
+		}
+		
+		// --Function get user details from email--//
+		public function getUserbyemail()
+		{
+
+			$email=$this->input->post('email');
+			$flag="0";
+			
+			$result=$this->db->query("SELECT sysu_id_pk,sysu_email FROM tblmvbsystemusers");
+			$result=$result->result();
+			
+			for($i=0;$i < count($result);$i ++)
+			{
+				
+				$userEmail=$this->encryption->decrypt($result[$i]->sysu_email);
+				
+				if ($email == $userEmail)
+				{
+					$flag=1;
+				}
+			}
+			
+			return $flag;
+		
+		}
+		
+		// ---Function used to reset password--/
+		public function resetUserpassword($userId)
+		{
+
+			for($i=0;$i < count($userId);$i ++)
+			{
+				
+				$characters='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+				$charactersLength=strlen($characters);
+				
+				$randomString='';
+				for($j=0;$j < 11;$j ++)
+				{
+					$randomString.=$characters[rand(0,$charactersLength - 1)];
+				}
+				$randomString=$this->encryption->encrypt($randomString);
+				$data=array(
+							'sysu_password'=>$randomString);
+				$this->db->where('sysu_id_pk',$userId[$i]);
+				
+				$this->db->update('tblmvbsystemusers',$data);
+			}
+			
+			return true;
+		
+		}
+		// funcrtion to get client id of user
+		public function getInboxDetails($id)
+		{
+
+			$clientid=$this->getClientId($id);
+			if ($clientid == 0)
+			{
+				return array();
+			}
+			$result=$this->db->query("select csms_title,csms_title,csms_content,csms_sendDate from tblmvbclientsms where csms_clntId_fk='" . $clientid . "'");
+			$res=$result->result();
+			if (count($res) > 0)
+			{
+				return $res;
+			} else
+			{
+				return array();
+			}
+		
+		}
+
+		public function getClientId($id)
+		{
+
+			$res=$this->db->query("select sysu_clientId_fk from tblmvbsystemusers where sysu_id_pk='" . $id . "'");
+			$result=$res->result();
+			if (count($result) > 0)
+			{
+				return $result[0]->sysu_clientId_fk;
+			} else
+			{
+				return 0;
+			}
+		
+		}
+
+		public function getUserType()
+		{
+
+			$query=$this->db->query("SELECT mut1.utyp_id_pk,mut1.utyp_userType,DATE_FORMAT(mut1.utyp_createdDate,'%d/%m/%Y %k:%i %p') as created_date,mut.utyp_userType as created_by,(CASE WHEN mut1.utyp_status='1' THEN 'Active' ELSE 'Deactive' END) as status FROM tblmvbusertypes mut inner join tblmvbusertypes mut1 on (mut.utyp_id_pk=mut1.utyp_createdBy) order by mut.utyp_id_pk");
+			return $query->result();
+		
+		}
+
+		public function getAllUserTypeList()
+		{
+
+			$query=$this->db->query("SELECT mut.utyp_id_pk,mut.utyp_userType FROM tblmvbusertypes mut order by mut.utyp_userType");
+			return $query->result();
+		
+		}
+
+		public function getallmodule()
+		{
+
+			$result=$this->db->query("SELECT mod_id_pk,mod_module_name FROM tblmvbmodules WHERE mod_menu_id='0' and mod_submenu_id='0' and mod_sub_submenu_id='0' and mod_status='1'");
+			return $result->result();
+		
+		}
+
+		public function getallsubmodule($id="")
+		{
+
+			$result=$this->db->query("SELECT mod_id_pk,mod_module_name,mod_menu_id FROM tblmvbmodules WHERE mod_menu_id='" . $id . "' and mod_submenu_id='0' and mod_sub_submenu_id='0' and mod_status='1'");
+			return $result->result();
+		
+		}
+
+		public function getallsubsubmodule($menu_id,$sub_module_id)
+		{
+
+			$result=$this->db->query("SELECT mod_id_pk,mod_module_name FROM tblmvbmodules WHERE mod_menu_id='" . $menu_id . "' and mod_submenu_id='" . $sub_module_id . "' and mod_sub_submenu_id='0' and mod_status='1'");
+			return $result->result();
+		
+		}
+
+		public function addUserType()
+		{
+
+			$created_date=date('Y-m-d H:i:s');
+			$created_by=$this->session->userdata('admin_admin_id');
+			
+			$user_type_name=$this->input->post('txtUserTypeName');
+			
+			$data=array(
+						'utyp_userType'=>$user_type_name,
+						'utyp_createdDate'=>$created_date,
+						'utyp_createdBy'=>$created_by,
+						'utyp_modifiedDate'=>$created_date,
+						'utyp_modifiedBy'=>$created_by,
+						'utyp_status'=>'1');
+			
+			$this->db->insert('tblmvbusertypes',$data);
+			
+			$insert_id=$this->db->insert_id();
+			
+			$modules=$this->input->post('modules');
+			
+			for($k=0;$k < count($modules);$k ++)
+			{
+				$data_mapping=array(
+									'mmap_module_id_fk'=>$modules[$k],
+									'mmap_UsersId_fk'=>$insert_id,
+									'mmap_createdDate'=>$created_date,
+									'mmap_createdBy'=>$created_by,
+									'mmap_modifiedDate'=>$created_date,
+									'mmap_modifiedBy'=>$created_by,
+									'mmap_status'=>'1');
+				
+				$this->db->insert('tblmvbmodulemapping',$data_mapping);
+			}
+			
+			// ---------------------------------- Start Save Transaction Logs ---------------------------------//
+			
+			setAActivityLogs('Transaction_activity','user_type_add');
+			
+			// --------------------------------- End Save Transaction Logs ------------------------------------//
+			
+			return $insert_id;
+		
+		}
+
+		public function editUserType()
+		{
+
+			$user_type_id=$this->input->post('hidden_user_type_id');
+			
+			$created_date=date('Y-m-d H:i:s');
+			$created_by=$this->session->userdata('admin_admin_id');
+			
+			$user_type_name=$this->input->post('txtUserTypeName');
+			
+			// ---------------------------------- Start Save Transaction Logs ---------------------------------//
+			
+			$transaction_logs_details='';
+			
+			$result_user_type_details=$this->db->query("Select utyp_userType from tblmvbusertypes where utyp_id_pk='" . $user_type_id . "'");
+			
+			$row_user_type_details=$result_user_type_details->result();
+			
+			if ($user_type_name != $row_user_type_details[0]->mutyp_userType)
+			{
+				$transaction_logs_details.='Edited for User Type Id - ' . $user_type_id . ' // ';
+				
+				$transaction_logs_details.='Before User Type name - ' . $row_user_type_details[0]->mutyp_userType . ' && After User Type Name - ' . $user_type_name;
+			}
+			
+			setAActivityLogs('Transaction_activity','user_type_edit',$transaction_logs_details);
+			
+			// --------------------------------- End Save Transaction Logs ------------------------------------//
+			
+			$data=array(
+						'utyp_userType'=>$user_type_name,
+						'utyp_modifiedDate'=>$created_date,
+						'utyp_modifiedBy'=>$created_by);
+			
+			$this->db->where('utyp_id_pk',$user_type_id);
+			$this->db->update('tblmvbusertypes',$data);
+			
+			$this->db->query("delete from tblmvbmodulemapping where mmap_UsersId_fk='" . $user_type_id . "'");
+			
+			$modules=$this->input->post('modules');
+			
+			for($k=0;$k < count($modules);$k ++)
+			{
+				$data_mapping=array(
+									'mmap_module_id_fk'=>$modules[$k],
+									'mmap_UsersId_fk'=>$user_type_id,
+									'mmap_createdDate'=>$created_date,
+									'mmap_createdBy'=>$created_by,
+									'mmap_modifiedDate'=>$created_date,
+									'mmap_modifiedBy'=>$created_by,
+									'mmap_status'=>'1');
+				
+				$this->db->insert('tblmvbmodulemapping',$data_mapping);
+			}
+			
+			return $user_type_id;
+		
+		}
+
+		public function getIdWiseUserType($id)
+		{
+
+			$query=$this->db->query("SELECT mut.utyp_id_pk,mut.utyp_userType FROM tblmvbusertypes mut where mut.utyp_id_pk='" . $id . "'");
+			
+			return $query->row_array();
+		
+		}
+
+		public function getIdWiseUserTypePrivileges($id)
+		{
+
+			$temp_array=array();
+			
+			$query=$this->db->query("SELECT mmap_module_id_fk FROM tblmvbmodulemapping where mmap_UsersId_fk='" . $id . "'");
+			
+			$user_type_privileges=$query->result();
+			// print_r($user_type_privileges);die();
+			for($x=0;$x < count($user_type_privileges);$x ++)
+			{
+				array_push($temp_array,$user_type_privileges[$x]->mmap_module_id_fk);
+			}
+			/*
+			 * print_r($temp_array);
+			 * die();
+			 */
+			return $temp_array;
+		
+		}
+
+		public function changeUserTypeIdStatus($status,$usertypeid)
+		{
+
+			$assign_id_for_status_change='';
+			
+			$transaction_logs_details='';
+			
+			for($i=0;$i < count($usertypeid);$i ++)
+			{
+				$data=array(
+							'utyp_status'=>$status);
+				$this->db->where('utyp_id_pk',$usertypeid[$i]);
+				$this->db->update('tblmvbusertypes',$data);
+				
+				$assign_id_for_status_change.=$usertypeid[$i] . ',';
+			}
+			
+			// ------------------------------ Start Save Transaction Logs -----------------------------------//
+			
+			if ($status == '0')
+			{
+				$current_status='Deactivate';
+			} else
+			{
+				$current_status='Activate';
+			}
+			
+			$transaction_logs_details.='Status change to ' . $current_status . ' for IDs - ' . $assign_id_for_status_change;
+			
+			setAActivityLogs('Transaction_activity','user_type_status',$transaction_logs_details);
+			
+			// ------------------------------- End Save Transaction Logs -----------------------------------//
+			
+			return true;
+		
+		}
+
+		public function getModuleId($module_code)
+		{
+
+			$admin_user_type_id=$this->session->userdata('admin_admin_user_type_id');
+			
+			$final_status=false;
+			
+			$query_module_id=$this->db->query("SELECT mod_id_pk FROM tblmvbmodules where mod_module_code='" . $module_code . "'");
+			
+			$row_module_id=$query_module_id->result();
+			
+			if ($admin_user_type_id != 1)
+			{
+				if (count($row_module_id) > 0)
+				{
+					if ($row_module_id[0]->mm_id_pk != 0)
+					{
+						$query_access_rights_id=$this->db->query("SELECT mmap_id_pk FROM tblmvbmodulemapping where mmap_module_id_fk='" . $row_module_id[0]->mm_id_pk . "' and mmap_UsersId_fk='" . $admin_user_type_id . "'");
+						
+						$row_access_rights_id=$query_access_rights_id->result();
+						
+						if (count($row_access_rights_id) > 0)
+						{
+							$final_status=true;
+						}
+					}
+				}
+			} else
+			{
+				$final_status=true;
+			}
+			
+			return $final_status;
+		
+		}
+	
+	 //----function used To get Orders---//
+	 public  function getOrders()
+	 {
+	 	 $clientId=$this->session->userdata('client_id');
+	 	
+	 	 $result=$this->db->query("SELECT `ord_id_pk`, `ord_packageType`,`ord_clntId_fk`, `ord_packageId_fk` FROM `tblmvborders` WHERE ord_clntId_fk='".$clientId."'");
+	 	 
+	 	 return $result->result();
+	 }
+	 
+	 
+	 public function getClientPackage($orderId,$packagetype,$clntId,$packageid)
+	 {
+	    
+	 	$sql_new="SELECT clntp_packId_fk,clntp_clntId_fk,clntp_orderId_fk,clntp_smsCredit as sms,clntp_emailCredit as email,pkg_name as name FROM tblmvbclientpackage LEFT JOIN 
+	 		      tblmvbpackages on clntp_packId_fk=pkg_id_pk WHERE clntp_packId_fk='".$packageid."' AND clntp_orderId_fk='".$orderId."' AND clntp_clntId_fk='".$clntId."' ";
+	 	
+	 	$sql_renew="SELECT cpr_id_pk,cpr_ordId_fk,cpr_clntId_fk,cpr_renewId_fk,cpr_smsCredit as sms,cpr_emailCredit as email,rpkg_packageName as name FROM tblmvbclientrenewpackage 
+	 		        LEFT JOIN tblmvbrenewpackage on cpr_renewId_fk=rpkg_id_pk  WHERE cpr_ordId_fk='".$orderId."' AND cpr_clntId_fk='".$clntId."'
+	 		        	 AND cpr_renewId_fk='".$packageid."' ";
+	 	
+	 	$sql=$sql_new;
+	 	if($packagetype=="Renewal")
+	 	{
+	 		$sql=$sql_renew;
+	 	}
+	 	
+	 	$result=$this->db->query($sql);
+	 	return  $result->row_array();
+	 	
+	 	
+	 }
+
+
+	 public function getClientdetails()
+	 {
+	 			$clientId=$this->session->userdata('client_id');
+	 	
+			 	 $result=$this->db->query("SELECT clnt_createdDate,clnt_expiryDate FROM tblmvbclients WHERE clnt_id_pk='".$clientId."'");
+			 	 
+			 	 return $result->result();
+	 }
+		
+		
+	}
+	
+	?>
