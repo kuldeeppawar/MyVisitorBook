@@ -1,0 +1,8 @@
+<IfModule mod_rewrite.c>
+RewriteEngine on
+RewriteBase /
+RewriteCond $1 !^(index\.php|assets|uploaded_files|img_cache|system|jscal|robots\.txt|favicon\.ico) 
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ myvisitorbook/index.php?/$1 [L]
+</IfModule>
