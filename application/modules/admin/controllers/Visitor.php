@@ -11,6 +11,7 @@ class Visitor extends CI_Controller
 		
 		$this->load->database();
 		$this->load->model('visitor_model');
+//		$this->load->model('branch_model');
 		$this->load->helper('url');
 		$this->load->helper('form');
 		$this->load->library('form_validation');
@@ -18,60 +19,197 @@ class Visitor extends CI_Controller
 		$this->load->library('pagination');
 		$this->load->library('encryption');
 		$this->form_validation->set_error_delimiters('<div class="error">','</div>');
-	
+
 	}
-	
+
 	// ==================== all page session check =====================
 	public function Checklogin()
 	{
-		if ($this->session->userdata('admin_admin_email') == '' || $this->session->userdata('branch_id')=="" || $this->session->userdata('branch_id')==0 )
-		{
-			if($this->session->userdata('admin_admin_email')=="")
-			{	
-			 redirect('admin');
-			}
-			if($this->session->userdata('branch_id')=="" || $this->session->userdata('branch_id')==0)
-			{
-				redirect('admin/branch/selectBranch');
-			}	
+	     $branchId=$this->session->userdata('branch_id');
+	      $clientId=$this->session->userdata('client_id');
+	      $adminId=$this->session->userdata('admin_admin_id');
+	     $parentClient=$this->session->userdata('parent_client');
+
+//		if ($this->session->userdata('admin_admin_email') == '' || $this->session->userdata('branch_id')=="" || $this->session->userdata('branch_id')==0 )
+//		{
+//			if($this->session->userdata('admin_admin_email')=="")
+//			{
+//			 redirect('admin');
+//			}
+//			if($this->session->userdata('branch_id')=="" || $this->session->userdata('branch_id')==0)
+//			{
+//				redirect('admin/branch/selectBranch');
+//			}
+//		}
+
+        if($parentClient == '1')
+        {
+            $data ['resultBranch']=$this->visitor_model->getAllBranch();
+            $id =  $data ['resultBranch']['0']->brn_id_pk;
+            $datanew=array('admin_admin_id'=>$this->session->userdata('admin_admin_id'),
+				       'admin_admin_name'=>$this->session->userdata('admin_admin_name'),
+					   'admin_admin_email'=>$this->session->userdata('admin_admin_email'),
+					   'admin_mobile'=>$this->session->userdata('admin_mobile'),
+					   'parent_client'=>$this->session->userdata('parent_client'),
+					   'branch_id'=>$id,
+					   'client_id'=>$this->session->userdata('client_id'),
+					   'admin_admin_user_type_id'=>$this->session->userdata('admin_admin_user_type_id'));
+		$this->session->set_flashdata('message','You have successfully logged in');
+		$data=array();
+		$this->session->unset_userdata($data);
+
+		$this->session->set_userdata($datanew);
+//		redirect('admin/dashboard');
 		}
-	
+		else
+		{
+            $datanew=array('admin_admin_id'=>$this->session->userdata('admin_admin_id'),
+				       'admin_admin_name'=>$this->session->userdata('admin_admin_name'),
+					   'admin_admin_email'=>$this->session->userdata('admin_admin_email'),
+					   'admin_mobile'=>$this->session->userdata('admin_mobile'),
+					   'parent_client'=>$this->session->userdata('parent_client'),
+					   'branch_id'=>$branchId,
+					   'client_id'=>$this->session->userdata('client_id'),
+					   'admin_admin_user_type_id'=>$this->session->userdata('admin_admin_user_type_id'));
+		$this->session->set_flashdata('message','You have successfully logged in');
+		$data=array();
+		$this->session->unset_userdata($data);
+
+		$this->session->set_userdata($datanew);
+//		redirect('admin/dashboard');
+		}
+
 	}
 
 	public function index()
 	{
-	
+
 		$this->Checklogin();
-		
-		$data ['resultVisitor']=$this->visitor_model->getAllVisitors();
-		
+		$data1 = '';
+//		$data ['resultVisitor']=$this->visitor_model->getAllVisitors();
+		$data ['resultVisitor']=$this->visitor_model->getAllVisitorscheck($data1);
+		$data['resultGroup']=$this->visitor_model->getAllgroup();
+//		print_r($data['resultGroup']);die;
 		//---------------------------------- Start Save Transaction Logs ---------------------------//
-		
+
 		setAActivityLogs('Transaction_activity','AAddvisitorform_view');
-		
+
 		//-------------------------------  End Save Transaction Logs ------------------------------//
-		
-		
+
+
 		$data ['include']='admin/visitor/getVisitors';
 		$data ['admin_section']='manage_Visitors';
 		$this->load->view('backend/container',$data);
-	
+
 	}
-	
-	// ---Function used to add new Visitor-//
-	public function addVisitor()
+
+		// ---Function used to add new Branch-//
+	public function updateGroup()
 	{
-	
+
 		$this->Checklogin();
 		if (isset($_POST ['btnSubmit']))
 		{
-				
+
+//			$data ['admin_section']='Branch';
+			$id=$this->visitor_model->updateGroup();
+			if ($id)
+			{
+				$this->session->set_flashdata('success','Group has been updated successfully.');
+				redirect('admin/visitor');
+			} else
+			{
+				$this->session->set_flashdata('error','Unable to update group.');
+				redirect('admin/visitor');
+			}
+		} else
+		{
+			redirect('admin/visitor');
+		}
+
+	}
+
+	public function getRecentViewVisitors()
+	{
+
+//		$this->Checklogin();
+
+//		$data ['resultVisitor']=$this->visitor_model->getRecentViewVisitors();
+
+        $data1 ='getRecentViewVisitors';
+		$data ['resultVisitor']=$this->visitor_model->getAllVisitorscheck($data1);
+
+		//---------------------------------- Start Save Transaction Logs ---------------------------//
+
+		setAActivityLogs('Transaction_activity','AAddvisitorform_view');
+
+		//-------------------------------  End Save Transaction Logs ------------------------------//
+
+
+		$data ['include']='admin/visitor/getVisitors';
+		$data ['admin_section']='manage_Visitors';
+		$this->load->view('backend/container',$data);
+
+	}
+
+	public function getMostViewVisitors()
+	{
+
+//		$this->Checklogin();
+
+//		$data ['resultVisitor']=$this->visitor_model->getMostViewVisitors();
+
+        $data1 ='getMostViewVisitors';
+		$data ['resultVisitor']=$this->visitor_model->getAllVisitorscheck($data1);
+		//---------------------------------- Start Save Transaction Logs ---------------------------//
+
+		setAActivityLogs('Transaction_activity','AAddvisitorform_view');
+
+		//-------------------------------  End Save Transaction Logs ------------------------------//
+
+
+		$data ['include']='admin/visitor/getVisitors';
+		$data ['admin_section']='manage_Visitors';
+		$this->load->view('backend/container',$data);
+
+	}
+
+		public function getNotUpdatedRecently()
+	{
+
+//		$this->Checklogin();
+
+//		$data ['resultVisitor']=$this->visitor_model->getNotUpdatedRecently();
+
+        $data1 ='getNotUpdatedRecently';
+		$data ['resultVisitor']=$this->visitor_model->getAllVisitorscheck($data1);
+		//---------------------------------- Start Save Transaction Logs ---------------------------//
+
+		setAActivityLogs('Transaction_activity','AAddvisitorform_view');
+
+		//-------------------------------  End Save Transaction Logs ------------------------------//
+
+
+		$data ['include']='admin/visitor/getVisitors';
+		$data ['admin_section']='manage_Visitors';
+		$this->load->view('backend/container',$data);
+
+	}
+
+	// ---Function used to add new Visitor-//
+	public function addVisitor()
+	{
+
+		$this->Checklogin();
+		if (isset($_POST ['btnSubmit']))
+		{
+
 			$data ['admin_section']='Visitor';
 			$id=$this->visitor_model->addVisitor();
 			if ($id)
 			{
 				$this->session->set_flashdata('success','Visitor has been added successfully.');
-				
+
 				redirect('admin/visitor');
 			} else
 			{
@@ -88,13 +226,50 @@ class Visitor extends CI_Controller
 			$data['admin_section']='manage_Visitors';
 			$this->load->view('backend/container',$data);
 		}
-	
-	} 
+
+	}
+
+	 public function verifyEmail()
+    {
+        $txtEmail=$_POST['txtEmail'];
+        $clientId=$this->session->userdata('client_id');
+        //Old query
+//		$result=$this->db->query("SELECT sysmu_id_pk,sysmu_languageId_fk,sysmu_username,sysmu_email,sysmu_mobile,sysmu_password,sysmu_empid,sysmu_userTypeId_fk FROM `tblmvbsysmainusers` WHERE sysmu_status='1'");
+//		$row=$result->result();
+
+        //New query by Kuldeep
+        $this->db->select('vis_id_pk,vis_mobile,vis_email');
+        $this->db->from('tblmvbvisitors');
+        $this->db->where('vis_status','1');
+        $this->db->where('vis_clientId_fk',$clientId);
+        $query = $this->db->get();
+        $row   = $query->result();
+
+        for($i=0;$i < count($row);$i ++)
+        {
+            $user_email=$row[$i]->vis_email;
+
+            if($user_email == $txtEmail)
+            {
+                $status='false';
+            }
+        }
+
+        if($status=='false')
+        {
+            echo 'false';
+        }
+        else
+        {
+            echo 'true';
+        }
+    }
 
 	//--function to Edit Visitor--//
 
 	public function editVisitor($id='')
 	{
+//	    echo $id;die;
 		$id=base64_decode($id);
 		$this->Checklogin();
 		if (isset($_POST ['btnSubmit']))
@@ -115,10 +290,11 @@ class Visitor extends CI_Controller
 			$visitor=$this->visitor_model->getVisitordetails($id);
 			$visitorgroup=$this->visitor_model->getVisitorgroupdetails($id);
 			if(count($visitor)>0)
-			{	
-                
-				$data['resultField']=$this->visitor_model->getAdditionalfields();
-				$data['resultCustom']=$this->visitor_model->getCustomfields();
+			{
+         		$data['resultField']=$this->visitor_model->getAdditionalfields();
+//				$data['resultCustom']=$this->visitor_model->getCustomfields();
+				$data['resultCustom']=$this->visitor_model->getCustomfields1($id);
+
 				$data ['VisitorId']=$id;
 				$data ['resultCountry']=$this->visitor_model->getCountrylist();
 				$data ['resultVisitor']=$visitor;
@@ -129,32 +305,32 @@ class Visitor extends CI_Controller
 				$data ['include']='admin/visitor/editVisitor';
 				$data ['admin_section']='manage_Visitors';
 				$this->load->view('backend/container',$data);
-			}	
-			else 
+			}
+			else
 			{
 				$this->session->set_flashdata('success','Something Went Wrong.');
 				redirect('admin/visitor');
-			}	
-	
+			}
+
 		}
-	
+
 	}
-	
-	
-	
-  //---function used to get state list----//	
+
+
+
+  //---function used to get state list----//
 	public function getState()
 	{
-	
+
 		$this->Checklogin();
 		$id=$this->input->post('val');
-	
+
 		if ($id > 0)
 		{
-			
+
 			$resultState=$this->visitor_model->getStatelist($id);
 			$msg="<option value=''>Select State</option>";
-				
+
 			for($i=0;$i<count($resultState);$i++)
 			{
 				$disable="";
@@ -162,35 +338,35 @@ class Visitor extends CI_Controller
 				{
 					$disable="disabled";
 				}
-					
+
 				$msg=$msg.'<option  value="'.$resultState[$i]->stat_id_pk.'"'  . $disable.'  >'.$resultState[$i]->stat_name.'</option>';
-				
-				
+
+
 			}
-			
+
 			echo $msg;
 		} else
 		{
-				
+
 			echo false;
 		}
-	
+
 	}
-	
-	
+
+
 	//---function used to get City list----//
 	public function getCity()
 	{
-	
+
 		$this->Checklogin();
 		$id=$this->input->post('val');
-	
+
 		if ($id > 0)
 		{
-				
+
 			$resultCity=$this->visitor_model->getCitylist($id);
 			$msg="<option value=''>Select City</option>";
-	
+
 			for($i=0;$i<count($resultCity);$i++)
 			{
 				$disable="";
@@ -198,39 +374,48 @@ class Visitor extends CI_Controller
 				{
 					$disable="disabled";
 				}
-					
+
 				$msg=$msg.'<option  value="'.$resultCity[$i]->cty_id_pk.'"'  . $disable.'  >'.$resultCity[$i]->cty_name.'</option>';
-	
-				
+
+
 			}
-				
+
 			echo $msg;
 		} else
 		{
-	
+
 			echo false;
 		}
-	
+
 	}
-	
-	
-	
+
+
+
 	//----Function to get Visitors details---//
   Public function  getSpecificvisitor()
   {
-  	
+
   	$insertid=$this->input->post('id');
-  	
+
   	$resultVisitor=$this->visitor_model->getAllVisitors();
   	$resultSpecvisitor=$this->visitor_model->getSpecificVisitors($insertid);
   	$resultGroup=$this->visitor_model->getVisitorgroup($insertid);
-  	$resultInvolved=$this->visitor_model->getVisitoruser($insertid);
+//  	$resultInvolved=$this->visitor_model->getVisitoruser($insertid);
+  	$resultInvolved=$this->visitor_model->getVisitorInvolved($insertid);
   	$resultComment=$this->visitor_model->getAllcomment($insertid);
   	$resultHistory=$this->visitor_model->getAllhistory($insertid);
+  	$getrelatedGroup=$this->visitor_model->getrelatedGroup($insertid);
+//  	$resultField=$this->visitor_model->getAdditionalfields($insertid);
+  	$resultField=$this->visitor_model->getCustomfields1($insertid);
+
+    setAActivityLogs('Transaction_activity','AAddvisitorform_view',$insertid,' '.$resultSpecvisitor['0']->vis_firstName.' profile viewd by admin');
+
+
+//  	print_r($resultInvolved);
 
   	if(count($resultSpecvisitor)>0)
-  	{	
-  	
+  	{
+
   	?>
   	    <div class="user_list_box">
 		<div class="row">
@@ -243,14 +428,14 @@ class Visitor extends CI_Controller
 									<li class="dropdown dropdown-user"><a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" style="font-size: 14px; padding: 18px 5px;">Recently updated <i class="fa fa-angle-down"></i>
 											</span></a>
 										<ul class="dropdown-menu dropdown-menu-default">
-											<li><a href="#">All Contacts</a></li>
-											<li><a href="#">My Contacts </a></li>
-											<li><a href="#">Recently viewed</a></li>
-											<li><a href="#">Not updated in 30 Days</a></li>
-										</ul></li>
+                                                    <li><a href="<?php echo base_url() ?>admin/visitor">All Visitor</a></li>
+                                                    <li><a href="<?php echo base_url() ?>admin/visitor/getRecentViewVisitors">Recently Viewed </a></li>
+                                                    <li><a href="<?php echo base_url() ?>admin/visitor/getMostViewVisitors">Most Viewed</a></li>
+                                                    <li><a href="<?php echo base_url() ?>admin/visitor/getNotUpdatedRecently">Not updated in 30 Days</a></li>
+                                        </ul></li>
 								</ul>
 							</div><!--  e1 -->
-						
+
 							<div id="send_sms11" class="modal fade" role="dialog"> <!--  s1 -->
 								<div class="modal-dialog">
 						                    <div class="modal-content">
@@ -276,7 +461,90 @@ class Visitor extends CI_Controller
 														<div class="modal-footer"></div>
 													</div>
 								</div>
-							</div><!--  s1 -->
+							</div>
+
+							<div id="otherContact" class="modal fade" role="dialog"> <!--  s1 -->
+								<div class="modal-dialog" style="width: 90%;">
+						                    <div class="modal-content">
+														<div class="modal-header">
+															<button type="button" class="close" data-dismiss="modal">×</button>
+<!--															<h4 class="modal-title text-left">--><?php //getLocalkeyword('Other Related Contacts');?><!--</h4>-->
+<!--															 <div class="col-md-12">-->
+                                                                    <?php
+                                                                        //																print_r($getrelatedGroup);
+
+
+                                                                        for ($i=0;$i<1;$i++)
+                                                                        {
+                                                                                ?>
+                                                                                 <div class="col-md-12">
+                                                                                     <div class="item-details">
+<!--                                                                                    <div style="float: left;">-->
+<!--                                                                                        <img class="item-pic" src="--><?php //echo base_url()?><!--themes/assets/pages/media/users/avatar3.jpg" style="width: 85%; border-radius: 70% !important;">-->
+<!--                                                                                    </div>-->
+                                                                                    <div style="">
+                                                                                        <h3><a href="" class="item-name primary-link">Contacts From  : <?php echo $getrelatedGroup[$i]->vis_businessName;?></a></h3>
+                                                                                    </div>
+                                                                                        <h4>Total Contact :  <?php echo  count($getrelatedGroup);?></h4>
+
+
+                                                                                </div>
+                                                                                </div>
+
+                                                                                <?php
+                                                                        }
+                                                                        ?>
+<!--                                                                    </div>-->
+														</div>
+														<div class="modal-body">
+                                                            <div class="general-item-list">
+
+                                                                <div class="item">
+                                                                    <div class="item-head" style="border-bottom: 1px solid #e4e4e4; padding-bottom: 5px; padding-top: 5px;">
+
+                                                                     <?php
+//                                                                        																print_r($getrelatedGroup);
+
+
+                                                                        for ($i=0;$i<count($getrelatedGroup);$i++)
+                                                                        {
+                                                                            $mobile = $getrelatedGroup[$i]->vis_mobile;
+                                                                            $masked =  str_pad(substr($mobile, -4), strlen($mobile), '*', STR_PAD_LEFT);
+
+                                                                                ?>
+                                                                                 <div class="col-md-3" style="margin-bottom: 3%;">
+                                                                                     <div class="item-details">
+                                                                                    <div style="float: left;">
+                                                                                        <img class="item-pic" src="<?php echo base_url()?>themes/assets/pages/media/users/avatar3.jpg" style="width: 85%; border-radius: 50% !important;">
+                                                                                    </div>
+                                                                                    <div style="">
+                                                                                        <a href="" class="item-name primary-link"><?php echo $getrelatedGroup[$i]->vis_firstName .' '.$getrelatedGroup[$i]->vis_lastName; ?></a>
+                                                                                    </div>
+                                                                                    <div style="float: left; padding-right: 10px;">
+                                                                                        <?php if(!empty($getrelatedGroup[$i]->vis_email)) { ?>
+                                                                                            <i class="fa fa-envelope item-label" onclick="send_emailcontact('<?php echo  $getrelatedGroup[$i]->vis_id_pk; ?>')" aria-hidden="true"></i> <?php echo $getrelatedGroup[$i]->vis_email ?><br> <?php } ?>
+                                                                                        <!--																		</div>-->
+                                                                                        <!--																		<div style="float: left;">-->
+                                                                                        <i class="fa fa-mobile mob" style="line-height: 20px;" onclick="send_smsusercontact('<?php echo  $getrelatedGroup[$i]->vis_id_pk; ?>')" aria-hidden="true"></i><?php echo $getrelatedGroup[$i]->vis_mobile; ?>
+                                                                                    </div>
+                                                                                </div>
+                                                                                </div>
+
+                                                                                <?php
+                                                                        }
+                                                                        ?>
+                                                                    </div>
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+														</div>
+														<div class="modal-footer"></div>
+													</div>
+								</div>
+<!--							</div>-->
+
+							<!--  s1 -->
 							<div id="send_email2" class="modal fade" role="dialog"><!--  s1 -->
 								<div class="modal-dialog">
 									<!-- Modal content-->
@@ -350,10 +618,10 @@ class Visitor extends CI_Controller
 																						<label><?php getLocalkeyword('Upload CSV file');?><span class="mandatory"></span></label>
 																						 <input type="file" id="txtFile" name="txtFile" required="required" accept=".csv">
 																					</div>
-																				
+
 																					<a onclick="getSamplecsv()" href="#"><?php getLocalkeyword('Download Sample CSV');?></a>
 																					<div class="modal-footer">
-																					
+
 																						<button type="submit" name="btnSubmit" class="btn btn-primary"><?php getLocalkeyword('Save');?></button>
 																						<button type="button"   data-dismiss="modal" class="btn btn-danger"><?php getLocalkeyword('Cancel');?></button>
 																					</div>
@@ -367,17 +635,17 @@ class Visitor extends CI_Controller
 													</div>
 												</div>
 											</div>
-							
+
 							<div class="col-md-6 col-sm-12  pull-right"><!--  s1 -->
 								<div class="" style="float: right; margin-left: 2px; margin-top: 12px;">
-									<?php 
+									<?php
 									 if(getAdminAccessRights('mvbVisitorsendsms'))
 									{
 									?>
 									<a onclick="send_sms()" class="margin_rgt p_element1" >
 									     <img src="<?php echo base_url()?>themes/assets/sms.png" height="22" title="Send SMS">
-									</a> 
-									<?php 
+									</a>
+									<?php
 									}
 									if(getAdminAccessRights('mvbVisitorsendemail'))
 									{
@@ -385,39 +653,39 @@ class Visitor extends CI_Controller
 									<a onclick="send_email()" class="margin_rgt p_element1" >
 										<i class="fa fa-envelope-o fa-2x" title="Send Email" style="color: #828282;"></i>
 									</a>
-									<?php 
+									<?php
 									}
 									if(getAdminAccessRights('mvbVisitordelete'))
 									{
 									?>
-									
-									 <a href="#" data-toggle="modal" data-target="#myModal_m12" class="margin_rgt" id="sb4"> 
+
+									 <a href="#" data-toggle="modal" data-target="#myModal_m12" class="margin_rgt" id="sb4">
 									    <i class="fa fa-trash fa-2x " title="Delete" style="color: #828282;"></i>
-									 </a> 
-									 <?php 
+									 </a>
+									 <?php
 									}
 									 ?>
 									 <a href="<?php echo base_url()?>admin/visitor/addVisitor" id="sample_editable_1_new hvr-float-shadow" class="btn btn-primary" data-title="Add Contact">+</a>
 									<ul class="nav navbar-nav pl0" style="float: right; margin-left: 7px;">
 										<li class="dropdown dropdown-user burger_menu">
 										    <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="false">
-										     <i class="fa fa-bars fa-2x" aria-hidden="true"></i> 
+										     <i class="fa fa-bars fa-2x" aria-hidden="true"></i>
 										    </a>
 											<ul class="dropdown-menu dropdown-menu-default">
 												<li class="options" style="border-bottom: 1px solid #e7ecf1;"><a onclick="printAddressLabeling('multiple','<?php echo count($resultVisitor);?>');" title="Custom Fields" style="padding: 5px; margin-top: 5px;"><?php getLocalkeyword('Print Address Label');?></a></li>
 												<li class="options" style="border-bottom: 1px solid #e7ecf1;"><a href="#" title="Custom Fields" style="padding: 0px 5px; margin-top: 5px;"><?php getLocalkeyword('Manage custom Fields');?></a></li>
-												<?php 
+												<?php
 												if(getAdminAccessRights('mvbVisitorimport'))
 												{
 												?>
 												<li class="options" style="border-bottom: 1px solid #e7ecf1;"><a href="#" title="Custom Fields" data-target="#send_email2" data-toggle="modal" style="padding: 0px 5px; margin-top: 5px;"><?php getLocalkeyword('Import Contact');?></a></li>
-												<?php 
+												<?php
 												}
 												if(getAdminAccessRights('mvbVisitorexport'))
 												{
 												?>
 												<li class="options" style="border-bottom: 1px solid #e7ecf1;"><a href="#" title="Custom Fields" data-target="#send_sms11" data-toggle="modal" style="padding: 0px 5px;; margin-top: 5px;"><?php getLocalkeyword('Export Contact');?></a></li>
-											  <?php 
+											  <?php
 												}
 											  ?>
 											</ul>
@@ -429,41 +697,145 @@ class Visitor extends CI_Controller
 					<!-- </div> -->
 					<div class="portlet-body" style="height: 470px; overflow: auto;" id="test-list">
 						<ul class="list list-group All_list">
-							<?php 
+							<?php
 							for($i=0;$i<count($resultVisitor);$i++)
-							{	
+							{
 								$active="";
-									
+
 							   if($resultVisitor[$i]->vis_id_pk==$insertid)
 							   {
 							   	$active="active";
 							   }
 							   $j=$i+1;
-								
+
 							 ?>
 							   <li class="list-group-item <?php echo $active;?>">
 							       <input type="checkbox" height="20" width="20" class="check_box1" onclick="chk_data()" id="chklist<?php echo $j?>"
 							        value="<?php echo $resultVisitor[$i]->vis_id_pk; ?>"/>
-							       
-							        <?php echo $resultVisitor[$i]->vis_firstName." ".$resultVisitor[$i]->vis_lastName;?>
+							       <h class="group-item" style="cursor: pointer;" onclick="getProfiledetails('<?php echo $resultVisitor[$i]->vis_id_pk ?>');">
+							        <l><?php echo $resultVisitor[$i]->vis_firstName." ".$resultVisitor[$i]->vis_lastName;?></l></h>
 							        <span class="pull-right"><?php echo $resultVisitor[$i]->vis_businessName ?></span>
+
 							   </li>
-							<?php 
+							<?php
 							}?>
-							
+
 						</ul>
 						<ul class="pagination pull-right"></ul>
 					</div>
 				</div>
 				</div>
-                   <script type="text/javascript">
+<script type="text/javascript">
+
+function getDetails(id)
+{
+
+	$(".page-content-wrapper").hide();
+    $(".page-content-wrapper1").show();
+
+    $.post("<?php echo base_url();?>admin/groups/getSpecificgroup",{id:id},function(data){
+  	  $(".page-content-wrapper1").html(data);
+  	  $('.p_element1').css('visibility','hidden');
+	  $('#sb3').hide();
+
+
+	  	$('.check_box1').change(function(){
+  	     if($('.check_box1:checked').length==0){
+  	        $('.selected_rows').show();
+  	        $('.p_element1').css('visibility','hidden');
+  			$('#sb3').hide();
+  	        }
+  	else if($('.check_box1:checked').length==1){
+  	        $('#sb3').show();
+  			$('.p_element1').css('visibility','visible');
+  	        }
+  	   else {
+  	         $('.p_element').hide();
+  	         $('.check_box1:checked').each(function(){
+  	            $('#'+$(this).attr('data-ptag')).show();
+  				$('#sb3').hide();
+  	        });
+  	          }
+
+  	        });
+
+
+			    var monkeyList = new List('test-list', {
+
+		  		  valueNames: ['name'],
+
+		  		  page: 10,
+
+		  		  plugins: [ ListPagination({}) ]
+
+		  		});
+
+			    var monkeyList = new List('test-list2', {
+
+			  		  valueNames: ['name'],
+
+			  		  page: 12,
+
+			  		  plugins: [ ListPagination({}) ]
+
+			  		});
+  	    });
+
+}
+
+function getProfiledetails(id)
+{
+//    $(".page-content-wrapper").hide();
+//            $(".page-content-wrapper1").show();
+            $.post("<?php echo base_url(); ?>admin/visitor/getSpecificvisitor", {id:id}, function(data)
+            {
+
+            $(".page-content-wrapper1").html(data);
+            $(".date-picker").datetimepicker({});
+            ////necessary
+            var monkeyList = new List('test-list', {
+
+            valueNames: ['name'],
+                    page: 10,
+                    plugins: [ ListPagination({}) ]
+
+            });
+            $('#sb4').hide();
+            $('.p_element1').css('visibility', 'hidden');
+            $('.check_box1').change(function(){
+
+            if ($('.check_box1:checked').length == 0){
+            $('.p_element1').css('visibility', 'hidden');
+            $('#sb4').hide();
+            }
+            else if ($('.check_box1:checked').length == 1){
+            $('.p_element1').css('visibility', 'visible');
+            $('#sb4').show();
+            }
+
+           else if ($('.check_box1:checked').length == 1){
+
+            $('.p_element1').css('visibility', 'visible');
+            $('#sb4').hide();
+            }
+            else {
+            $('.p_element').hide();
+            $('.check_box1:checked').each(function(){
+            $('#' + $(this).attr('data-ptag')).show();
+            $('#sb4').hide();
+            });
+            }
+            });
+            });
+  }
+
 
                             function chk_data()
                             {
                         	    if($('.check_box1:checked').length==0){
                     		        $('.p_element1').css('visibility','hidden');
                     				$('#sb4').hide();
-                    				
+
                     		    }
                     			else if($('.check_box1:checked').length==1){
                     		     $('.p_element1').css('visibility','visible');
@@ -484,25 +856,25 @@ class Visitor extends CI_Controller
                     		        });
                     		    }
 
-                            } 
+                            }
 
                             function send_sms()
                             {
                                  var count=<?php echo count($resultVisitor) ?>;
                                  var senderId=[];
-                                
+
                                  for (var i=1;i<=count;i++)
                                  {
                                	  if($('#chklist'+i).is(':checked'))
                                	  {
-                               		senderId.push($("#chklist"+i).val()); 
+                               		senderId.push($("#chklist"+i).val());
                                	  }
-                                  } 
+                                  }
 
-                                 
+
                                  if (senderId.length === 0) {
                                	   alert ("Please Select The User");
-                               	      
+
                                	}
                                  else
                                  {
@@ -524,18 +896,18 @@ class Visitor extends CI_Controller
                                      // order for us to be able to submit it.
                                      $(document.body).append(form);
                                      form.submit();
-                                     
+
                    		          <?php /*?>  $.redirect("<?php echo base_url() ?>admin/sms_management/bulk_sms",
                    		            {
                    		            user: senderId,
                    		                    way:"user",
                    		            },
                    		              "POST", "");<?php */?>
-                              
-                                     
-                                    
-                                       
-                                  }  
+
+
+
+
+                                  }
                             }
 
 
@@ -543,23 +915,23 @@ class Visitor extends CI_Controller
                             {
                                  var count=<?php echo count($resultVisitor) ?>;
                                  var senderId=[];
-                               
+
                                  for (var i=1;i<=count;i++)
                                  {
                                	  if($('#chklist'+i).is(':checked'))
                                	  {
-                               		senderId.push($("#chklist"+i).val()); 
+                               		senderId.push($("#chklist"+i).val());
                                	  }
-                                  } 
+                                  }
 
-                                 
+
                                  if (senderId.length === 0) {
                                	   alert ("Please Select The User");
-                               	      
+
                                	}
                                  else
                                  {
-                                     
+
                                 	  var form = $('<form></form>');
                                       var path="<?php echo base_url() ?>admin/email_management/bulk_email";
                                       form.attr("method", "post");
@@ -578,7 +950,7 @@ class Visitor extends CI_Controller
                                       // order for us to be able to submit it.
                                       $(document.body).append(form);
                                       form.submit();
-                                      
+
 //                                      alert("Bye");
 //                                      $.redirect("<?php // echo //base_url() ?>admin/email_management/bulk_email",
 //                                      {
@@ -586,16 +958,51 @@ class Visitor extends CI_Controller
 //                                              way:"user",
 //                                      },
 //                                              "POST", "");
-                                       
-                                  }  
+
+                                  }
                             }
 
-                            function send_smsuser()
+                              function send_emailcontact(id)
                             {
-                                
-                                 var senderId=[];
-                                 
-                               	 senderId.push(<?php echo $insertid;?>); 
+
+                                 var senderId=id;
+
+                                	  var form = $('<form></form>');
+                                      var path="<?php echo base_url() ?>admin/email_management/bulk_email";
+                                      form.attr("method", "post");
+                                      form.attr("action", path);
+                                      var field = $('<input></input>');
+                                      field.attr("type", "hidden");
+                                      field.attr("name", "user");
+                                      field.attr("value", senderId);
+                                      form.append(field);
+                                      var field = $('<input></input>');
+                                      field.attr("type", "hidden");
+                                      field.attr("name", "way");
+                                      field.attr("value", "user");
+                                      form.append(field);
+                                      // The form needs to be a part of the document in
+                                      // order for us to be able to submit it.
+                                      $(document.body).append(form);
+                                      form.submit();
+
+//                                      alert("Bye");
+//                                      $.redirect("<?php // echo //base_url() ?>admin/email_management/bulk_email",
+//                                      {
+//                                      user: senderId,
+//                                              way:"user",
+//                                      },
+//                                              "POST", "");
+
+                                  }
+
+
+                            function send_smsusercontact(id)
+                            {
+
+                                 var senderId = id;
+
+//                               	 senderId.push(<?php //echo $insertid;?>//);
 
                                	 var form = $('<form></form>');
                                  var path="<?php echo base_url() ?>admin/sms_management/bulk_sms";
@@ -615,7 +1022,7 @@ class Visitor extends CI_Controller
                                  // order for us to be able to submit it.
                                  $(document.body).append(form);
                                  form.submit();
-                                 
+
                		          <?php /*?>  $.redirect("<?php echo base_url() ?>admin/sms_management/bulk_sms",
                		            {
                		            user: senderId,
@@ -624,12 +1031,47 @@ class Visitor extends CI_Controller
                		              "POST", "");<?php */?>
 
                             }
-                         
+
+                            function send_smsuser()
+                            {
+
+                                 var senderId=[];
+
+                               	 senderId.push(<?php echo $insertid;?>);
+
+                               	 var form = $('<form></form>');
+                                 var path="<?php echo base_url() ?>admin/sms_management/bulk_sms";
+                                 form.attr("method", "post");
+                                 form.attr("action", path);
+                                 var field = $('<input></input>');
+                                 field.attr("type", "hidden");
+                                 field.attr("name", "user");
+                                 field.attr("value", senderId);
+                                 form.append(field);
+                                 var field = $('<input></input>');
+                                 field.attr("type", "hidden");
+                                 field.attr("name", "way");
+                                 field.attr("value", "user");
+                                 form.append(field);
+                                 // The form needs to be a part of the document in
+                                 // order for us to be able to submit it.
+                                 $(document.body).append(form);
+                                 form.submit();
+
+               		          <?php /*?>  $.redirect("<?php echo base_url() ?>admin/sms_management/bulk_sms",
+               		            {
+               		            user: senderId,
+               		                    way:"user",
+               		            },
+               		              "POST", "");<?php */?>
+
+                            }
+
                             function send_smsemail()
                             {
                             	  var senderId=[];
-                                  
-                                	 senderId.push(<?php echo $insertid;?>); 
+
+                                	 senderId.push(<?php echo $insertid;?>);
 
                                 	  var form = $('<form></form>');
                                       var path="<?php echo base_url() ?>admin/email_management/bulk_email";
@@ -649,7 +1091,7 @@ class Visitor extends CI_Controller
                                       // order for us to be able to submit it.
                                       $(document.body).append(form);
                                       form.submit();
-                                      
+
 //                                      alert("Bye");
 //                                      $.redirect("<?php //echo base_url() ?>admin/email_management/bulk_email",
 //                                      {
@@ -658,23 +1100,23 @@ class Visitor extends CI_Controller
 //                                      },
 //                                              "POST", "");
                             }
- 
-                   
+
+
 							function deletelistVisitor()
 							{
 								 	var count='<?php echo count($resultVisitor)?>';
-							     	var visitorId; 
-							 
+							     	var visitorId;
+
 								    for (var i=1;i<=count;i++)
 								    {
 									  	  if($('#chklist'+i).is(':checked'))
-									  	  {	  
-									  		visitorId=$("#chklist"+i).val(); 
-									  	 
+									  	  {
+									  		visitorId=$("#chklist"+i).val();
+
 									  		  $.post("<?php echo base_url();?>admin/visitor/deleteVisitor",{visitorId:visitorId},function(data){
 
 									  	        location.reload();
-													  	     
+
 									  	        });
 									      }
 								    }
@@ -689,40 +1131,76 @@ class Visitor extends CI_Controller
 							  <?php if($resultSpecvisitor[0]->vis_profile!="")
 							  {?>
 								<img src="<?php echo base_url() ?>uploads/visitor_image/<?php echo $resultSpecvisitor[0]->vis_profile; ?>" alt="" style="height: 100%; width: 100%;">
-						      <?php 
+						      <?php
 							  }
-							  else 
+							  else
 							  {
 						      ?>
 						      	<img src="<?php echo base_url() ?>themes/assets/profile_user.jpg" alt="" style="height: 100%; width: 100%;">
-						
-						      <?php 
+
+						      <?php
 							  }
 						      ?>
 							</div>
-							<?php 
+							<?php
 							if(getAdminAccessRights('mvbVisitoredit'))
 							{
 							?>
-							<a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo $insertid?>"><?php getLocalkeyword('Edit');?></a>
-							<?php 
+							<a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo base64_encode($insertid);?>"><?php getLocalkeyword('Edit');?></a>
+							<?php
 							}
 							?>
 						</div>
 						<div class="col-md-7">
-							<h3 style="margin-top: 3px;"margin-bottom:0px;><?php echo $resultSpecvisitor[0]->vis_firstName." ".$resultSpecvisitor[0]->vis_lastName ;?></h3>
+							<h3 style="margin-top: 3px;margin-bottom:0px;"><?php echo $resultSpecvisitor[0]->vis_firstName." ".$resultSpecvisitor[0]->vis_lastName ;?></h3>
 							<p style="color: #ababab;">
-								Me at <a href="#"><?php echo $resultSpecvisitor[0]->vis_businessName;?></a> <a href="#">( <?php echo $resultSpecvisitor[0]->vis_businessCategory;?> )</a>
+								Me at <a href="#"><?php if(!empty($resultSpecvisitor[0]->vis_businessName)) {echo $resultSpecvisitor[0]->vis_businessName; } else{ ?> <a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo base64_encode($insertid);?>" style="color: red;">Update Business</a> <?php  } ?></a> <a href="#"> <?php if(!empty($resultSpecvisitor[0]->vis_businessCategory)) {echo '('. $resultSpecvisitor[0]->vis_businessCategory .')'; } else{ ?>  <?php  } ?> </a>
 							</p>
-							<p style="color: #ababab;">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+							<p style="color: #ababab;"><?php echo $resultSpecvisitor[0]->vis_note;?></p>
 							<div class="row pro_info">
 								<ul class="list-inline">
-									<li><i class="fa fa-envelope" aria-hidden="true"></i><?php echo $resultSpecvisitor[0]->vis_email;?></li>
-									<li><i class="fa fa-mobile mob" aria-hidden="true"></i> <?php echo $resultSpecvisitor[0]->vis_mobile;?></li>
-									<li><i class="fa fa-phone" aria-hidden="true"></i> <?php echo $resultSpecvisitor[0]->vis_landline;?></li>
-									<?php for($j=0;$j<count($resultGroup);$j++)
+								<?php if (!empty($resultSpecvisitor[0]->vis_email))
+								{
+								    ?><li><i class="fa fa-envelope" aria-hidden="true"></i><?php echo $resultSpecvisitor[0]->vis_email;?></li>
+<?php
+								}
+								else
+								{
+								    ?><li><i class="fa fa-envelope" aria-hidden="true"></i><a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo base64_encode($insertid);?>" style="color: red;">Update Email</a></li> <?php
+
+								}
+								?>
+								<?php if (!empty($resultSpecvisitor[0]->vis_mobile))
+								{
+								    ?><li><i class="fa fa-mobile mob" style="line-height: 20px;" aria-hidden="true"></i> <?php echo $resultSpecvisitor[0]->vis_mobile;?></li>
+<?php
+								}
+								else
+								{
+								    ?><li><i class="fa fa-mobile mob" aria-hidden="true"></i><a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo base64_encode($insertid);?>" style="color: red;">Update Mobile</a></li> <?php
+
+								}
+								?>
+								<?php if (!empty($resultSpecvisitor[0]->vis_landline))
+								{
+								    ?><li><i class="fa fa-phone" aria-hidden="true"></i> <?php echo $resultSpecvisitor[0]->vis_landline;?></li>
+<?php
+								}
+								else
+								{
+								    ?><li><i class="fa fa-phone" aria-hidden="true"></i><a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo base64_encode($insertid);?>" style="color: red;">Update Landline</a></li> <?php
+
+								}
+								?>
+
+
+
+
+									<?php
+//									print_r($resultGroup);
+									for($j=0;$j<count($resultGroup);$j++)
 									{?>
-									<li><a href="#"><i class="fa fa-group" aria-hidden="true"></i> <?php echo $resultGroup[$j]->grp_name;?></a></li>
+									<li><a href="#" onclick="getDetails('<?php echo $resultGroup[$j]->grp_id_pk;?>')"><i class="fa fa-group" aria-hidden="true"></i> <?php echo $resultGroup[$j]->grp_name;?></a></li>
 									<?php }?>
 									<!--<li><i class="fa fa-calendar" aria-hidden="true"></i> 13/10/2016</li>
 
@@ -732,34 +1210,34 @@ class Visitor extends CI_Controller
 						</div>
 						<div class="col-md-3 pd0">
 							<div class="btn-group pull-right">
-								<a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo $insertid?>" id="sample_editable_1_new hvr-float-shadow" class="btn btn-primary"><?php getLocalkeyword('Edit');?></a> 
+								<a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo base64_encode($insertid);?>" id="sample_editable_1_new hvr-float-shadow" class="btn btn-primary"><?php getLocalkeyword('Edit');?></a>
 								<a class="btn  blue btn-primary btn-circle" href="javascript:;" data-toggle="dropdown" data-hover="dropdown" data-close-others="true"
 									aria-expanded="false" style="margin-left: 5px;"
 								> <?php getLocalkeyword('More');?> <i class="fa fa-angle-down"></i>
 								</a>
 								<div class="dropdown-menu dropdown-checkboxes pull-right">
 									<li class="options" style="border-bottom: 1px solid #e7ecf1;"><a onclick="printAddressLabeling('single','<?php echo $insertid;?>');" title="Custom Fields" style="padding: 5px; margin-top: 5px; padding: 5px !important; line-height: 10px"><?php getLocalkeyword('Print Address Label');?></a></li>
-									<?php 
+									<?php
 									if(getAdminAccessRights('mvbVisitorsendsms'))
 									{
 									?>
 									<li class="options" style="border-bottom: 1px solid #e7ecf1;"><a href="#"  onclick="send_smsuser()" style="padding-top: 0px; margin-top: 5px; padding-left: 0px; padding: 5px !important; line-height: 10px"><?php getLocalkeyword('Send SMS');?></a></li>
-									<?php 
+									<?php
 									}
 									if(getAdminAccessRights('mvbVisitorsendemail'))
 									{
 									?>
 									<li class="options" style="border-bottom: 1px solid #e7ecf1;"><a href="#"  onclick="send_smsemail()" style="padding-top: 0px; margin-top: 5px; padding-left: 0px; padding: 5px !important; line-height: 10px"><?php getLocalkeyword('Send Email');?></a></li>
-									<?php 
+									<?php
 									}
 									if(getAdminAccessRights('mvbVisitordelete'))
 									{
 									?>
 									<li class="options" style="border-bottom: 1px solid #e7ecf1;"><a href="#" title="Custom Fields" data-toggle="modal" data-target="#myModal_mm1"
 										style="padding-top: 0px; margin-top: 5px; padding-left: 0px; padding: 5px !important; line-height: 10px"><?php getLocalkeyword('Delete');?></a></li>
-									<?php 
+									<?php
 									}
-									?>	
+									?>
 								</div>
 								<a onclick="closeProfileDiv();" class="close_section" title="Close" id="close"><i style="color: #a9a3a3; padding-top: 10px; margin-left: 7px; font-size: 35px;" class="fa fa-times fa-3x"></i></a>
 							</div>
@@ -968,19 +1446,19 @@ class Visitor extends CI_Controller
 													<div class="col-md-12">
 														<dl class="dl-horizontal">
 															<dt><?php getLocalkeyword('Registration');?>:</dt>
-															<dd><?php  
+															<dd><?php
 															echo date("d-m-Y",strtotime($resultSpecvisitor[0]->vis_createdDate));
 															?></dd>
-															<dt class="bb"><?php getLocalkeyword('Revisit');?>:</dt>
-															<dd class="bb"><?php 	echo date("d-m-Y",strtotime( $resultSpecvisitor[0]->vl_visitDate));?></dd>
+															<dt><?php getLocalkeyword('Revisit');?>:</dt>
+															<dd><?php 	echo date("d-m-Y",strtotime( $resultSpecvisitor[0]->vl_visitDate));?></dd>
 															<dt><?php getLocalkeyword('DOB');?>:</dt>
-															<dd><?php 	echo date("d-m-Y",strtotime( $resultSpecvisitor[0]->vis_dob));?></dd>
-															<dt class="bb"><?php getLocalkeyword('Anniversary Date');?>:</dt>
-															<dd class="bb"><?php 	echo date("d-m-Y",strtotime( $resultSpecvisitor[0]->vis_anniversaryDate));?></dd>
+															<dd><?php  if($resultSpecvisitor[0]->vis_dob == '0000-00-00') { ?> <a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo base64_encode($insertid);?>" style="color: red;">Update DOB</a> <?php  } else{ echo date("d-m-Y",strtotime( $resultSpecvisitor[0]->vis_dob)); }?></dd>
+															<dt><?php getLocalkeyword('Anniversary Date');?>:</dt>
+															<dd><?php if($resultSpecvisitor[0]->vis_anniversaryDate == '0000-00-00') { ?> <a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo base64_encode($insertid);?>" style="color: red;">Update Anniversary</a> <?php  } else{ echo date("d-m-Y",strtotime( $resultSpecvisitor[0]->vis_anniversaryDate)); }?></dd>
 															<dt><?php getLocalkeyword('Website');?>:</dt>
-															<dd><?php echo $resultSpecvisitor[0]->vis_website;?></dd>
+															<dd><?php if(!empty($resultSpecvisitor[0]->vis_website)){ echo $resultSpecvisitor[0]->vis_website; } else{ ?> <a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo base64_encode($insertid);?>" style="color: red;">Update Website</a> <?php } ?></dd>
 															<dt><?php getLocalkeyword('Fax');?>:</dt>
-															<dd><?php echo $resultSpecvisitor[0]->vis_fax;?></dd>
+															<dd><?php if(!empty($resultSpecvisitor[0]->vis_fax)){ echo $resultSpecvisitor[0]->vis_fax; } else{ ?> <a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo base64_encode($insertid);?>" style="color: red;">Update Fax</a> <?php } ?></dd>
 														</dl>
 													</div>
 												</div>
@@ -993,7 +1471,8 @@ class Visitor extends CI_Controller
 														</div>
 													</div>
 													<div class="col-md-12">
-														<?php echo $resultSpecvisitor[0]->vis_address;?>,<br> <?php echo $resultSpecvisitor[0]->cty_name;?>. <br> <?php echo $resultSpecvisitor[0]->vis_zipCode;?>
+														 <?php if(!empty($resultSpecvisitor[0]->vis_address)) { echo $resultSpecvisitor[0]->vis_address; } else{ echo 'Please update address'; }?>,<br> <?php if(!empty($resultSpecvisitor[0]->cty_name)) { echo $resultSpecvisitor[0]->cty_name; } else { echo 'Please update City'; }?> - <?php if(!empty($resultSpecvisitor[0]->vis_zipCode)) { echo $resultSpecvisitor[0]->vis_zipCode; } else { echo 'Please update ZIP Code'; }?>, <?php  if(!empty($resultSpecvisitor[0]->stat_name)) { echo $resultSpecvisitor[0]->stat_name;} else{ echo 'Please update State'; }   ?>, <?php  if(!empty($resultSpecvisitor[0]->cntr_name)) {  echo $resultSpecvisitor[0]->cntr_name; }else{ echo 'Please update Country'; }  ?>
+
 													</div>
 												</div>
 											</div>
@@ -1005,54 +1484,62 @@ class Visitor extends CI_Controller
 														</div>
 													</div>
 													<div class="col-md-12">
+
 														<div class="general-item-list">
+
 															<div class="item">
 																<div class="item-head" style="border-bottom: 1px solid #e4e4e4; padding-bottom: 5px; padding-top: 5px;">
-																	<div class="item-details">
+																<?php
+//																print_r($getrelatedGroup);
+																if(count($getrelatedGroup)<=0)
+																    {
+																        echo 'No Related Contact';
+																    }
+																    else{
+
+																for ($i=0;$i<count($getrelatedGroup);$i++)
+																    {
+																         $mobile = $getrelatedGroup[$i]->vis_mobile;
+                                                                         $masked =  str_pad(substr($mobile, -4), strlen($mobile), '*', STR_PAD_LEFT);
+																        if($i > '3')
+																            {
+																                echo '<div data-target="#otherContact" data-toggle="modal" style="text-align: right;"><a href="#">See more</a></div>'; break;
+																            }else{
+
+                                                                         ?>
+																        <div class="item-details">
 																		<div style="float: left;">
 																			<img class="item-pic" src="<?php echo base_url()?>themes/assets/pages/media/users/avatar3.jpg" style="width: 85%; border-radius: 50% !important;">
 																		</div>
 																		<div style="">
-																			<a href="" class="item-name primary-link">Nick Larson</a>
+																			<a href="" class="item-name primary-link"><?php echo $getrelatedGroup[$i]->vis_firstName .' '.$getrelatedGroup[$i]->vis_lastName; ?></a>
 																		</div>
 																		<div style="float: left; padding-right: 10px;">
-																			<i class="fa fa-envelope item-label" aria-hidden="true"></i> abc@gmail.com
-																		</div>
-																		<div style="float: left;">
-																			<i class="fa fa-mobile mob" aria-hidden="true"></i> 8446253249
+																		<?php if(!empty($getrelatedGroup[$i]->vis_email)) { ?>
+																			<i class="fa fa-envelope item-label" onclick="send_emailcontact('<?php echo  $getrelatedGroup[$i]->vis_id_pk; ?>')" aria-hidden="true"></i> <?php echo $getrelatedGroup[$i]->vis_email ?><br> <?php } ?>
+<!--																		</div>-->
+<!--																		<div style="float: left;">-->
+																			<i class="fa fa-mobile mob" style="line-height: 20px;" onclick="send_smsusercontact('<?php echo  $getrelatedGroup[$i]->vis_id_pk; ?>')" aria-hidden="true"></i><?php echo $masked; ?>
 																		</div>
 																	</div>
+<?php
+																    }
+//																     if(count($getrelatedGroup)>='3')
+//                                                                    {
+//                                                                       echo 'see more';
+//                                                                     }
+  	}
+  	}
+																?>
 																</div>
 															</div>
+
 														</div>
 													</div>
 												</div>
 											</div>
+
 											<div class="col-md-6 tab-content123">
-												<div class="row">
-													<div class="col-md-12">
-														<div class="caption caption-md" style="border-bottom: 1px solid #d0d0d0; padding-bottom: 5px; margin-bottom: 5px;">
-															<span class="caption-subject font-blue-madison uppercase"><?php getLocalkeyword('User Involved');?></span>
-														</div>
-													</div>
-													<div class="col-md-12">
-													<?php 
-													 for($i=0;$i<count($resultInvolved);$i++)
-													 {
-													?>
-														<a href="#">
-															<div class="img-id" style="float: left; width: 45px; margin-bottom: 5px; margin-right: 5px;">
-																<img class="item-pic" src="<?php echo base_url()?>themes/assets/pages/media/users/avatar3.jpg" style="border-radius: 50% !important;">Id:
-																<?php echo $resultInvolved[$i]->vc_sysuserId_fk ?>
-															</div>
-														</a>
-													<?php 
-													 }
-													?>	 
-													</div>
-												</div>
-											</div>
-											<div class="col-md-6 tab-content123 pull-right" style="width: 48%;">
 												<div class="row">
 													<div class="col-md-12">
 														<div class="caption caption-md" style="border-bottom: 1px solid #d0d0d0; padding-bottom: 5px; margin-bottom: 5px;">
@@ -1060,16 +1547,26 @@ class Visitor extends CI_Controller
 														</div>
 													</div>
 													<div class="col-md-12">
-														<div style="margin-bottom: 10px;">
-															<span style="color: #9a9a9a;"><?php getLocalkeyword('Desc');?></span><br><?php echo $resultSpecvisitor[0]->vis_note;?> .
+													<?php
+//													 print_r($resultField);
+							        if(count($resultField)> 0)
+                                            {
+													 for($i=0;$i < count($resultField);$i ++)
+													{
+													    ?>
+													    <div style="margin-bottom: 10px;">
+															<span style="color: #9a9a9a;"><?php echo $resultField[$i]->cfi_label;?></span><br><?php if(!empty($resultField[$i]->vcf_value)){ echo $resultField[$i]->vcf_value; }else{ ?> <a href="<?php echo base_url()?>admin/visitor/editVisitor/<?php echo base64_encode($insertid);?>" style="color: red;"><?php  echo 'Update ' .$resultField[$i]->cfi_label; ?></a> <?php  } ?>
 														</div>
-														<div style="margin-bottom: 10px;">
-															<span style="color: #9a9a9a;"><?php getLocalkeyword('Home');?></span><br> <?php echo $resultSpecvisitor[0]->cty_name;?>
-														</div>
-														<div style="margin-bottom: 10px;">
-															<span style="color: #9a9a9a;"><?php getLocalkeyword('Email');?></span> <?php echo $resultSpecvisitor[0]->vis_email;?>
-														</div>
-														<a href="#" id="desc1">See More</a>
+													    <?php
+//                                                        echo $resultField[$i]->cfi_label; echo '<br>';
+//                                                        echo $resultField[$i]->vcf_value; echo '<br>';
+                                                    }
+                                             }
+                                             else{
+							                        echo 'No Additional Information Found';
+                                             }
+                                                    ?>
+
 														<div style="display: none;" id="desc_show">
 															<?php /*?><div style="margin-bottom: 10px;">
 																<span style="color: #9a9a9a;">Desc</span><br> Hide, Show, Toggle, Slide, Fade, and Animate. ... How to hide parts of text. ... With jQuery, you can hide and show HTML elements with the hide() and show() .
@@ -1084,6 +1581,39 @@ class Visitor extends CI_Controller
 													</div>
 												</div>
 											</div>
+
+											<div class="col-md-6 tab-content123">
+												<div class="row">
+													<div class="col-md-12">
+														<div class="caption caption-md" style="border-bottom: 1px solid #d0d0d0; padding-bottom: 5px; margin-bottom: 5px;">
+															<span class="caption-subject font-blue-madison uppercase"><?php getLocalkeyword('User Involved');?></span>
+														</div>
+													</div>
+													<div class="col-md-12">
+													<?php
+//													print_r($resultInvolved);
+                                                        if(count($resultInvolved)> 0)
+                                                            {
+													 for($i=0;$i<count($resultInvolved);$i++)
+													 {
+													?>
+														<a href="#">
+															<div class="img-id" style="float: left; width: 45px; margin-bottom: 5px; margin-right: 5px;">
+																<img class="item-pic" src="<?php echo base_url()?>themes/assets/pages/media/users/avatar3.jpg" style="border-radius: 50% !important;">
+																<a onclick="getProfiledetails('<?php $resultInvolved[$i]->vc_id_pk; ?>')"><?php echo $resultInvolved[$i]->sysu_name; ?></a>
+															</div>
+														</a>
+													<?php
+													 }
+													 }
+													 else
+													     {
+													         echo 'No User Involved';
+													     }
+													?>
+													</div>
+												</div>
+											</div>
 										</div>
 									</div>
 									<div id="Package" class="tab-pane fade">
@@ -1094,9 +1624,10 @@ class Visitor extends CI_Controller
 														<div class="timeline">
 															<!-- TIMELINE ITEM -->
 															<?php
+//															print_r($resultHistory);
 															for($tl=0;$tl<count($resultHistory);$tl++)
 															{
-															?>	
+															?>
 															<div class="timeline-item">
 																<div class="timeline-badge">
 																	<img class="timeline-badge-userpic" src="<?php echo base_url()?>themes/assets/profile_user.jpg">
@@ -1105,11 +1636,11 @@ class Visitor extends CI_Controller
 																	<div class="timeline-body-arrow"></div>
 																	<div class="timeline-body-head">
 																		<div class="timeline-body-head-caption">
-																			<a href="javascript:;" class="timeline-body-title font-blue-madison">Andres Iniesta</a> <span class="timeline-body-time font-grey-cascade"><?php echo $resultHistory[$tl]->history_title.' '.$resultHistory[$tl]->action_date;?></span>
+																			<a href="javascript:;" class="timeline-body-title font-blue-madison"><?php echo $resultHistory[$tl]->updatedBy ;?></a> <span class="timeline-body-time font-grey-cascade"><?php echo $resultHistory[$tl]->history_title.' '.$resultHistory[$tl]->action_date;?></span>
 																		</div>
 																	</div>
 																	<div class="timeline-body-content">
-																		<span class="font-grey-cascade"> 
+																		<span class="font-grey-cascade">
 																		<?php echo $resultHistory[$tl]->history_description;?> </span>
 																	</div>
 																</div>
@@ -1126,7 +1657,7 @@ class Visitor extends CI_Controller
 										<div id="password" class="tab-pane fade row">
 													<div class="col-md-6">
 														<div class="form-group">
-																
+
 														 <input type="text" size="16" name="txtSubject" id="txtSubject" placeholder="Subject" class="form-control">
 																 <input type="hidden" value="<?php echo $insertid;?>" name="txtVisitorid" id="txtVisitorid" >
 															<br>
@@ -1134,11 +1665,11 @@ class Visitor extends CI_Controller
 																	<textarea class="form-control" name="txtComment" id="txtComment" rows="3" placeholder="Type Here" aria-invalid="false" ></textarea>
 															</div>
 															 <div class="form-group">
-																
+
 																<div class="" id="schedule1" >
-														
+
 																<input type="date" name="txtDate" id="txtDate" size="16"  class="form-control"> <span class="input-group-btn">
-																	
+
 																	</button>
 																</span>
 															</div>
@@ -1194,7 +1725,7 @@ class Visitor extends CI_Controller
 													<div class="col-md-6 col-sm-6"  id="vlcdata">
 													 <script src="<?php echo base_url()?>themes/assets/global/plugins/horizontal-timeline/horozontal-timeline.min.js" type="text/javascript"></script>
 													<script src="<?php echo base_url()?>themes/assets/global/plugins/fullcalendar/fullcalendar.min.js" type="text/javascript"></script>
-													
+
 														<div class="portlet light portlet-fit bordered">
 															<div class="portlet-body">
 																<div class="cd-horizontal-timeline mt-timeline-horizontal loaded" data-spacing="60">
@@ -1202,7 +1733,9 @@ class Visitor extends CI_Controller
 																		<div class="events-wrapper">
 																			<div class="events" >
 																				<ol>
-																					<?php //count($resultComment) 
+																					<?php //count($resultComment)
+																					   if(count($resultComment)> 0)
+                                                            {
 															                        for($i=0;$i<count($resultComment);$i++)
 															                           {
 															                              $staus='';
@@ -1210,23 +1743,28 @@ class Visitor extends CI_Controller
 															                              {
 															                              	$staus="selected";
 															                              }
-															                           	 
+
 															                           	?>
 															                          <li><a   onclick="getComment(<?php echo $resultComment[$i]->vc_id_pk;?>)"  href="#0" data-date=" <?php echo  date("d/m/Y",strtotime($resultComment[$i]->vc_date)); ?>"
 															                             class="border-after-red bg-after-red ">
-															                             <?php 
+															                             <?php
 															                            echo   date("d M",strtotime($resultComment[$i]->vc_date))
 															                             ?>
-															                             
+
 															                             </a></li>
-															                           <?php 
-															                          
-																					    
+															                           <?php
+
+
 																					   }
-																					
+																					   }
+																					   else
+																					       {
+																					           echo 'No User Involved';
+																					       }
+
 																					?>
-<!-- 																					
-																					
+<!--
+
 																				</ol>
 																				<span class="filling-line bg-red" aria-hidden="true"></span>
 																			</div>
@@ -1251,7 +1789,7 @@ class Visitor extends CI_Controller
 															                              {
 															                              	$staus="selected";
 															                              }
-															                           	 
+
 															                           	?>
 																							<li class="<?php echo $staus;?>" data-date="<?php echo  date("d/m/Y",strtotime($resultComment[$i]->vc_date)); ?>">
 																								<div class="mt-title">
@@ -1291,30 +1829,30 @@ class Visitor extends CI_Controller
 			</div>
 		</div>
 	</div>
-  	<?php 
+  	<?php
   	}
-  	else 
+  	else
   	{
   		?>
   		    <div class="row"><h4>Something Went Wrong</h4></div>
-  		<?php 
-  	}	
+  		<?php
+  	}
   }
-	
-	
+
+
   //--function used to validate otp--//
   public function validateOtp()
   {
-  
+
   	$this->Checklogin();
   	$pass=$this->input->post('Password');
   	$admin_id=$this->session->userdata('admin_admin_id');
   	$result=$this->visitor_model->getSpecificuser($admin_id);
-  
+
   	if(count($result)>0)
   	{
   		$storedPassword=$this->encryption->decrypt($result[0]->sysu_password);
-  		 
+
   		if($storedPassword==$pass)
   		{
   			echo 1;
@@ -1323,32 +1861,32 @@ class Visitor extends CI_Controller
   		{
   			echo 0;
   		}
-  			
+
   	}
   	else
   	{
   		echo 0;
   	}
-  
-  
+
+
   }
-  
-  
-  
+
+
+
   // ----Function Used To download visitor csv----//
   public function getVisitorcsv()
   {
   	$this->Checklogin();
-  	
- 
-  	
+
+
+
   	setAActivityLogs('Transaction_activity','AAddvisitorform_getcsv');
-  	
-  
+
+
   	$resultVisitor=$this->visitor_model->getAllVisitors();
-  
+
   	$contents='"Id","Customer Name","Mobile No","Email Id","Business Name","Location","Registration On","Last Revisit"';
-  
+
   	$contents.="\n";
   	for($i=0;$i < count($resultVisitor);$i ++)
   	{
@@ -1356,35 +1894,35 @@ class Visitor extends CI_Controller
   		$contents.='"' . $resultVisitor[$i]->vis_id_pk . '","' .  $resultVisitor[$i]->vis_firstName." ".$resultVisitor[$i]->vis_lastName . '","' . $resultVisitor[$i]->vis_mobile . '","' . $resultVisitor[$i]->vis_email . '","' . $resultVisitor[$i]->vis_businessName . '" ,"' .  $resultVisitor[$i]->cty_name . '","' . $resultVisitor[$i]->vis_createdDate . '","' .  $resultVisitor[$i]->vl_visitDate . '"';
   		$contents.="\n";
   	}
-  
+
   	$contents=strip_tags($contents);
-  
+
   	// header to make force download the file
   	Header("Content-Disposition: attachment; filename=Visitor.csv");
   	print $contents;
   	exit();
-  
- 
-  	
+
+
+
   }
-  
-  
-  
+
+
+
   // ---Function used to upload Csv--//
   public function uploadCsv()
   {
-  
+
   	$this->Checklogin();
   	if (isset($_POST ['btnSubmit']))
   	{
-  			
-  
+
+
   		$data ['admin_section']='Festival';
   		$id=$this->visitor_model->uploadCsv();
   		if ($id)
   		{
   			setAActivityLogs('Transaction_activity','AAddvisitorform_uploadcsv');
-  			
+
   			$this->session->set_flashdata('success',' CSV uploaded successfully.');
   			redirect('admin/visitor');
   		} else
@@ -1396,15 +1934,15 @@ class Visitor extends CI_Controller
   	{
   		redirect('admin/visitor');
   	}
-  
+
   }
-  
+
   // ---Function used to delete visitor--//
   public function deleteVisitor()
   {
-  
+
      	$this->Checklogin();
-  			
+
      	$visitorId=$this->input->post('visitorId');
   		$id=$this->visitor_model->deleteVisitor($visitorId);
   		if ($id)
@@ -1416,46 +1954,80 @@ class Visitor extends CI_Controller
   			$this->session->set_flashdata('success',' Something Went Wrong.');
   			redirect('admin/visitor');
   		}
-  	
-  
+
+
   }
-  
+
   // ---Function used to add new Groups-//
   public function addGroup()
   {
-  
+
      	$this->Checklogin();
   		$data ['admin_section']='Groups';
   		$id=$this->visitor_model->addGroup();
-  		
+
   		echo $id;
-  
+
   }
-  
-  
+
+
   // ---Function used to add new VisitorCommen-//
   public function saveComment()
   {
-  
+
   	$this->Checklogin();
   	$data ['admin_section']='Groups';
   	$id=$this->visitor_model->saveComment();
-  
+
   	echo $id;
-  
+
   }
-  
-  
+      public function verifyMobile()
+    {
+        $txtMobilenumber=$_POST['txtMobilenumber'];
+        $clientId=$this->session->userdata('client_id');
+        //Old query
+//		$result=$this->db->query("SELECT sysmu_id_pk,sysmu_languageId_fk,sysmu_username,sysmu_email,sysmu_mobile,sysmu_password,sysmu_empid,sysmu_userTypeId_fk FROM `tblmvbsysmainusers` WHERE sysmu_status='1'");
+//		$row=$result->result();
+
+        //New query by Kuldeep
+        $this->db->select('vis_id_pk,vis_mobile');
+        $this->db->from('tblmvbvisitors');
+        $this->db->where('vis_status','1');
+        $this->db->where('vis_clientId_fk',$clientId);
+        $query = $this->db->get();
+        $row   = $query->result();
+
+        for($i=0;$i < count($row);$i ++)
+        {
+            $user_mobile=$row[$i]->vis_mobile;
+
+            if($user_mobile == $txtMobilenumber)
+            {
+                $status='false';
+            }
+        }
+
+        if($status=='false')
+        {
+            echo 'false';
+        }
+        else
+        {
+            echo 'true';
+        }
+    }
+
   //---function get comment--//
   public  function getComment()
   {
-  	
+
   	 $id=$this->input->post('id');
   	 $resultComment=$this->visitor_model->getComment($id);
   	 if(count($resultComment)>0)
   	 {
   	 ?>
-  	   
+
 					<li class="selected" data-date="<?php echo  date("d/m/Y",strtotime($resultComment[0]->vc_date)); ?>">
 						<div class="mt-title">
 							<h2 class="mt-content-title"><?php echo $resultComment[0]->vc_subject; ?></h2>
@@ -1478,21 +2050,21 @@ class Visitor extends CI_Controller
 						</div>
 					</li>
 	<?php }?>
-  	<?php 
-  	
-  	
+  	<?php
+
+
   }
-  
-  
+
+
   public function getupdateComment()
   {
-    $insertid=$this->input->post('visitorId');  	
+    $insertid=$this->input->post('visitorId');
   	$resultComment=$this->visitor_model->getAllcomment($insertid);
   	?>
-                                                     	
+
 			 <script src="<?php echo base_url()?>themes/assets/global/plugins/horizontal-timeline/horozontal-timeline.min.js" type="text/javascript"></script>
 			<script src="<?php echo base_url()?>themes/assets/global/plugins/fullcalendar/fullcalendar.min.js" type="text/javascript"></script>
-			
+
 				<div class="portlet light portlet-fit bordered">
 					<div class="portlet-body">
 						<div class="cd-horizontal-timeline mt-timeline-horizontal loaded" data-spacing="60">
@@ -1500,7 +2072,7 @@ class Visitor extends CI_Controller
 								<div class="events-wrapper">
 									<div class="events" >
 										<ol>
-											<?php //count($resultComment) 
+											<?php //count($resultComment)
 					                        for($i=0;$i<count($resultComment);$i++)
 					                           {
 					                              $staus='';
@@ -1508,23 +2080,23 @@ class Visitor extends CI_Controller
 					                              {
 					                              	$staus="selected";
 					                              }
-					                           	 
+
 					                           	?>
 					                          <li><a id="slidervisit<?php echo $i?>"  onclick="getComment(<?php echo $resultComment[$i]->vc_id_pk;?>)"  href="#0" data-date=" <?php echo  date("d/m/Y",strtotime($resultComment[$i]->vc_date)); ?>"
 					                             class="border-after-red bg-after-red <?php echo $staus;?>">
-					                             <?php 
+					                             <?php
 					                            echo   date("d M",strtotime($resultComment[$i]->vc_date))
 					                             ?>
-					                             
+
 					                             </a></li>
-					                           <?php 
-					                          
-											    
+					                           <?php
+
+
 											   }
-											
+
 											?>
-<!-- 																					
-																					
+<!--
+
 																				</ol>
 																				<span class="filling-line bg-red" aria-hidden="true"></span>
 																			</div>
@@ -1549,7 +2121,7 @@ class Visitor extends CI_Controller
 					                              {
 					                              	$staus="selected";
 					                              }
-					                           	 
+
 					                           	?>
 													<li class="<?php echo $staus;?>" data-date="<?php echo  date("d/m/Y",strtotime($resultComment[$i]->vc_date)); ?>">
 														<div class="mt-title">
@@ -1580,13 +2152,8 @@ class Visitor extends CI_Controller
 					</div>
 				</div>
 			</div>
-		
-  	<?php 
-  	
-  	
-  }
-  
-  
-	
-}
 
+  	<?php
+
+  }
+}
