@@ -107,7 +107,7 @@ function setSAActivityLogs($type="",$login_act="",$activity_details="")
 }
 
 
-function setAActivityLogs($type="",$login_act="",$activity_details="")
+function setAActivityLogs($type="",$login_act="",$visitor_id="",$activity_details="")
 {
 		$CI =& get_instance();
 
@@ -121,7 +121,7 @@ function setAActivityLogs($type="",$login_act="",$activity_details="")
 		{
 				 $CI->load->model('admin_activity_logs_model');
 
-	    		 $r = $CI->admin_activity_logs_model->setTransactionLogs($type,$login_act,$activity_details);
+	    		 $r = $CI->admin_activity_logs_model->setTransactionLogs($type,$login_act,$visitor_id,$activity_details);
 		}
 }
 
@@ -315,8 +315,8 @@ function checkPackageRights($client_id,$type)
 							$result_branch=$CI->db->query("SELECT brn_id_pk FROM tblmvbbranches where brn_clientId_fk='".$client_id."'");
 		
 							$row_branch=$result_branch->result();
-
-							if(count($row_branch)>=$row_package_details[0]->clntp_branch)
+//							echo count($row_branch); echo $row_package_details[0]->clntp_branch+1;die;
+							if(count($row_branch)>=$row_package_details[0]->clntp_branch+1)
 							{
 										return false;
 							}
